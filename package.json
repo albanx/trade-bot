@@ -1,0 +1,49 @@
+{
+  "name": "frontend-base",
+  "version": "1.0.0",
+  "description": "Cbot sample for cryptocurrency",
+  "main": "index.js",
+  "scripts": {
+    "start": "babel-node index",
+    "clean": "rimraf build",
+    "prettify": "prettier --write '**/*.{js,json,css}'",
+    "precommit": "lint-staged"
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/albanx/cbot.git"
+  },
+  "author": "Alban Xhaferllari",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "lint-staged": "^4.1.3",
+    "rimraf": "^2.6.2"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "babel-runtime": "^6.26.0",
+    "colors": "^1.1.2",
+    "express": "^4.15.4",
+    "gdax": "^0.4.2",
+    "request": "^2.83.0"
+  },
+  "lint-staged": {
+    "*.{js,json,css}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "engines": {
+    "node": "^8.3.0",
+    "yarn": "^1.0.0"
+  }
+}
