@@ -4,6 +4,7 @@
   "description": "Cbot sample for cryptocurrency",
   "main": "index.js",
   "scripts": {
+    "mongo": "mongod.exe -dbpath=D:/mongodb/data/db",
     "start": "babel-node index",
     "clean": "rimraf build",
     "prettify": "prettier --write '**/*.{js,json,css}'",
@@ -34,6 +35,8 @@
     "colors": "^1.1.2",
     "express": "^4.15.4",
     "gdax": "^0.4.2",
+    "got": "^8.0.1",
+    "mongodb": "^3.0.0-rc0",
     "request": "^2.83.0"
   },
   "lint-staged": {
