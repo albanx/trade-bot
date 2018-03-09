@@ -1,19 +1,19 @@
 import request from 'request';
-import Gdax from 'gdax';
 import mongo from 'mongodb';
 import Kraken from './providers/kraken';
+import config from './config';
 
-const MONGO_DB_URL = 'mongodb://localhost:27017';
-const DB_NAME = 'crypto_coins';
-const COIN_TABLE = 'coins';
 const krakenApi = new Kraken('', '', {});
 const MARKETS = [];
 
 const openDB = async () => {
-    const client = await mongo.MongoClient.connect(MONGO_DB_URL);
-    const db = client.db(DB_NAME);
-    let collection = await db.collection(COIN_TABLE);
-    return {client, collection};
+    const client = await mongo.MongoClient.connect(config.HOST_MONGO);
+    return client.db(config.DB_NAME);
+};
+
+const getCollection =  async() => {
+  let collection = await db.collection(config.TABLE_COIN);
+  return collection;
 };
 
 const getUTCDate = () => {

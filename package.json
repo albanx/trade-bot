@@ -4,7 +4,7 @@
   "description": "Cbot sample for cryptocurrency",
   "main": "index.js",
   "scripts": {
-    "mongo": "mongod.exe -dbpath=D:/mongodb/data/db",
+    "mongo": "mongod -dbpath=data/db",
     "start": "babel-node index",
     "clean": "rimraf build",
     "prettify": "prettier --write '**/*.{js,json,css}'",
