@@ -11,8 +11,8 @@ const openDB = async () => {
     return client.db(config.DB_NAME);
 };
 
-const getCollection =  async() => {
-  let collection = await db.collection(config.TABLE_COIN);
+const getPriceTable =  async (db) => {
+  const collection = await db.collection(config.TABLE_COIN);
   return collection;
 };
 
@@ -29,6 +29,16 @@ const getUTCDate = () => {
         d.getUTCMonth() + '-' +
         d.getUTCDate() + ' ' +
         formatTime(d);
+};
+
+
+
+
+
+const startTradingBot = async () => {
+  const db = await openDB();
+  const table = await getPriceTable(db);
+  
 };
 
 const checkCoinPrice = async (name, market) => {
