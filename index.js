@@ -44,15 +44,15 @@ const startTradingBot = async () => {
 const checkCoinPrice = async (name, market) => {
     let {client, collection} = await openDB().catch(err => console.log('Error ', err));
     let coin = await collection.findOne({name, market});
-    console.log('checkCoinPrice::', coin);
     client.close();
+    return coin;
 };
 
 
 const updateCoinPrice = async (price, market, time) => {
     console.log('updateCoinPrice::', price, market);
     let {client, collection} = await openDB().catch(err => console.log('Error ', err));
-    collection.createIndex( { name: 1, market: 1 }, { unique: true } )
+    collection.createIndex( { name: 1, market: 1 }, { unique: true } );
 
     collection.update({
         'name': 'BTC',
@@ -70,19 +70,28 @@ const updateCoinPrice = async (price, market, time) => {
 };
 
 const callKrakenApi = async () => {
-    console.log('callKrakenApi::');
+    console.log('::callKrakenApi::');
     const data = await krakenApi.api('Ticker', { pair : 'XXBTZEUR' });
     const price = data.result['XXBTZEUR'].b[0];
-    console.log('callKrakenApi::', price);
 
     updateCoinPrice(price, 'kraken', getUTCDate()).catch(err => {
         console.log('Cannot update price ', err);
-    })
+    });
+    return price;
 };
 
-checkCoinPrice('BTC', 'kraken');
-callKrakenApi();
+const main = async() => {
+    let coin = await checkCoinPrice('BTC', 'kraken');
+    let price = await callKrakenApi();
 
+    if(parseFloat(coin.price) < parseFloat(price)) {
+        console.log('ALERT Price change up', coin.price, price);
+    } else {
+        console.log('No Price change', coin.price, price);
+    }
+};
+
+main().catch(err => console.log('There is a general error', err));
 
 // const websocket = new Gdax.WebsocketClient(['BTC-USD']);
 // websocket.on('message', data => {
