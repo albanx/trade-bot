@@ -37,7 +37,8 @@
     "gdax": "^0.4.2",
     "got": "^8.0.1",
     "mongodb": "^3.0.0-rc0",
-    "request": "^2.83.0"
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5"
   },
   "lint-staged": {
     "*.{js,json,css}": [
