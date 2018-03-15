@@ -1,138 +1,62 @@
 import request from 'request-promise-native';
 import mongo from 'mongodb';
-import Kraken from './providers/kraken';
 import config from './config';
-import BitTrex from './providers/bittrex';
-
-const krakenApi = new Kraken('', '', {});
-const MARKETS = [];
-
-const openDB = async () => {
-  const client = await mongo.MongoClient.connect(config.HOST_MONGO);
-  return client.db(config.DB_NAME);
-};
-
-const getHistoryCollectin = async db => {
-  const collection = await db.collection(config.COLLECTION_HISTORY);
-  return collection;
-};
-
-const getPriceCollection = async db => {
-  const collection = await db.collection(config.COLLECTION_COIN);
-  collection.createIndex({ name: 1, market: 1 }, { unique: true });
-  return collection;
-};
-
-const checkCoinPrice = async (collection, name, market) => {
-  const coin = await collection.findOne({ name, market });
-  return coin;
-};
-
-const getStartPrice = async (collection, name, market) => {
-  const coin = await collection.findOne({ name, market });
-  return coin.price_start;
-};
-
-const updateCoinPrice = async (
-  collection,
-  coin,
-  priceMarket,
-  priceStart,
-  market,
-  action
-) => {
-  collection.update(
-    {
-      name: coin,
-      market: market
-    },
-    {
-      name: coin,
-      market: market,
-      price_current: priceMarket,
-      price_start: priceStart,
-      action: action,
-      time: new Date()
-    },
-    {
-      upsert: true
-    }
-  );
-  console.log('updateCoinPrice::done');
-};
-
-const addToHistory = (coll, coin, price, market, action) => {
-  coll.insert({ coin, price, market, action, time: new Date() });
-};
-
-const getPriceBittrex = async coinCode => {
-  const bt = new BitTrex(request);
-  const price = await bt.getPrice(coinCode);
-  console.log('Price coins: ', price);
-};
-
-const sellOnBittrex = async coinName => {
-  console.log('sellOnBittrex::', coinName);
-};
-
-const buyOnBittrex = async coinName => {
-  console.log('buyOnBittrex::', coinName);
-};
-
-const findNextAction = async (historyC, coin, market, percentChange) => {
-  const last = await historyC.findOne(
-    { coin, market },
-    { sort: { _id: -1 }, limit: 1 }
-  );
-  if (Math.abs(percentChange) > 10) {
-    let nextActionBasedOnMarket = percentChange > 0 ? 'sell' : 'buy';
-
-    if (
-      (last.action === 'buy' && nextActionBasedOnMarket === 'sell') ||
-      (last.action === 'sell' && nextActionBasedOnMarket === 'buy') ||
-      !last.action
-    ) {
-      return nextActionBasedOnMarket;
-    }
-  }
-  return 'noaction';
-};
+import Store from './src/Store';
+import CoinService from './src/CoinService';
+import CoinCollection from './src/CoinCollection';
+import HistoryCollection from './src/HistoryCollection';
+import BittrexProvider from './src/providers/BittrexProvider';
+import HistoryService from './src/HistoryService';
 
 const startTradingBot = async (coinName, market) => {
   console.log('startTradingBot::');
-  const db = await openDB();
-  const collection = await getPriceCollection(db);
-  const historyColl = await getHistoryCollectin(db);
-  let priceStart = await getStartPrice(collection, coinName, market);
-  const priceMarket = await getPriceBittrex(coinName);
+  const db = await new Store(config.HOST_MONGO, config.DB_NAME).openDb();
+  const co = await new CoinCollection(db).getCollection();
+  const hc = await new HistoryCollection(db).getCollection();
+  const coinService = new CoinService(co);
+  const historyService = new HistoryService(hc, 0.002);
+  const provider = new BittrexProvider(request, 'USDT');
 
-  if (!priceStart) priceStart = priceMarket;
+  let priceStart = await coinService.getPriceStart(coinName, market);
+  let priceMarket = await provider.getCoinPrice(coinName);
 
-  setInterval(async () => {
-    console.log('checkingInterval::');
+  console.log('priceStart::', priceStart);
+  if (!priceStart) {
+    priceStart = priceMarket;
+    await coinService.updatePrice(coinName, priceStart, priceStart, market, null);
+  }
+
+  console.log(`Start conditions: start price ${priceStart}, price market ${priceMarket}`);
+
+  const startMonitor = async () => {
+    priceMarket = await provider.getCoinPrice(coinName);
     const percentChange = (priceMarket - priceStart) * 100 / priceMarket;
-    const nextAction = await findNextAction(
-      historyColl,
+    const nextAction = await historyService.findNextAction(
       coinName,
       market,
       percentChange
     );
 
-    if (nextAction === 'sell') {
-      const response = await sellOnBittrex(coinName);
-      if (response.success) {
-        sellOnBittrex(coinName);
-        updateCoinPrice(collection, coinName, priceMarket, market);
-        addToHistory(historyColl, coinName, price, market, nextAction);
+    console.log(`Monitor start price${priceStart}, price market ${priceMarket}, ${percentChange} %, action ${nextAction}`);
+
+    if (nextAction) {
+      let response = {};
+      if (nextAction === 'sell') {
+        response = await provider.sellCoin(coinName);
+      } else if (nextAction === 'buy') {
+        response = await provider.buyCoin(coinName);
       }
-    } else if (nextAction === 'buy') {
-      const response = await buyOnBittrex(coinName);
+
       if (response.success) {
-        updateCoinPrice(collection, coinName, priceMarket, market);
-        addToHistory(historyColl, coinName, price, market, nextAction);
+        coinService.updatePrice(coinName, priceStart, priceMarket, market, nextAction);
+        historyService.addToHistory(coinName, price, market, nextAction);
       }
     }
-  }, 30000);
+
+    setTimeout(startMonitor, 5000);
+  };
+
+  startMonitor();
 };
 
 
