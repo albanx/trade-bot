@@ -6,4 +6,16 @@ export default class Provider {
   setBaseCoin(coin) {
     this.baseCoin = coin;
   }
+
+  getBaseCoin() {
+    return this.baseCoin;
+  }
+
+  async sellCoin() {
+
+  }
+
+  async buyCoin() {
+
+  }
 }

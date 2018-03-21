@@ -1,63 +1,32 @@
 import request from 'request-promise-native';
-import mongo from 'mongodb';
 import config from './config';
 import Store from './src/Store';
-import CoinService from './src/CoinService';
-import CoinCollection from './src/CoinCollection';
-import HistoryCollection from './src/HistoryCollection';
+import CoinService from './src/services/CoinService';
+import CoinCollection from './src/collections/CoinCollection';
+import OrderCollection from './src/collections/OrderCollection';
 import BittrexProvider from './src/providers/BittrexProvider';
-import HistoryService from './src/HistoryService';
+import OrderService from './src/services/OrderService';
+import BitstampProvider from "./src/providers/BitstampProvider";
+import Dashboard from './src/Dashboard';
+import TradeService from "./src/services/TradeService";
 
-const startTradingBot = async (coinName, market) => {
-  console.log('startTradingBot::');
+const dashboard = new Dashboard({});
+
+const startTradingBot = async (coin, providers) => {
   const db = await new Store(config.HOST_MONGO, config.DB_NAME).openDb();
   const co = await new CoinCollection(db).getCollection();
-  const hc = await new HistoryCollection(db).getCollection();
+  const hc = await new OrderCollection(db).getCollection();
   const coinService = new CoinService(co);
-  const historyService = new HistoryService(hc, 0.002);
-  const provider = new BittrexProvider(request, 'USDT');
+  const orderService = new OrderService(hc, 6);
+  const tradeService = new TradeService(providers, coinService, orderService, dashboard, 60);
 
-  let priceStart = await coinService.getPriceStart(coinName, market);
-  let priceMarket = await provider.getCoinPrice(coinName);
-
-  console.log('priceStart::', priceStart);
-  if (!priceStart) {
-    priceStart = priceMarket;
-    await coinService.updatePrice(coinName, priceStart, priceStart, market, null);
-  }
-
-  console.log(`Start conditions: start price ${priceStart}, price market ${priceMarket}`);
-
-  const startMonitor = async () => {
-    priceMarket = await provider.getCoinPrice(coinName);
-    const percentChange = (priceMarket - priceStart) * 100 / priceMarket;
-    const nextAction = await historyService.findNextAction(
-      coinName,
-      market,
-      percentChange
-    );
-
-    console.log(`Monitor start price${priceStart}, price market ${priceMarket}, ${percentChange} %, action ${nextAction}`);
-
-    if (nextAction) {
-      let response = {};
-      if (nextAction === 'sell') {
-        response = await provider.sellCoin(coinName);
-      } else if (nextAction === 'buy') {
-        response = await provider.buyCoin(coinName);
-      }
-
-      if (response.success) {
-        coinService.updatePrice(coinName, priceStart, priceMarket, market, nextAction);
-        historyService.addToHistory(coinName, price, market, nextAction);
-      }
-    }
-
-    setTimeout(startMonitor, 5000);
-  };
-
-  startMonitor();
+  tradeService.startMonitor().catch(e => dashboard.logText.log(e));
 };
 
+const providers = [
+  new BitstampProvider(request, 'LTC', 'eur', 1),
+  // new BittrexProvider(request, 'LTC', 'USDT', 1)
+];
+startTradingBot('LTC', providers).catch(e => console.log('error', e));
 
-startTradingBot('LTC', 'bittrex').catch(e => console.log('error', e));
+

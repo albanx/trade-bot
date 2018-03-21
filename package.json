@@ -8,10 +8,14 @@
     "start": "babel-node index",
     "clean": "rimraf build",
     "prettify": "prettier --write '**/*.{js,json,css}'",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "test": "jest"
   },
   "prettier": {
     "singleQuote": true
+  },
+  "jest": {
+
   },
   "repository": {
     "type": "git",
@@ -22,16 +26,22 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
+    "babel-jest": "^23.0.0-alpha.0",
     "babel-loader": "^7.1.2",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
+    "jest": "^22.4.2",
     "lint-staged": "^4.1.3",
+    "regenerator-runtime": "^0.11.1",
     "rimraf": "^2.6.2"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "babel-runtime": "^6.26.0",
+    "blessed": "^0.1.81",
+    "chalk": "^2.3.2",
     "colors": "^1.1.2",
     "express": "^4.15.4",
     "gdax": "^0.4.2",
