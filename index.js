@@ -2,7 +2,7 @@ import request from 'request-promise-native';
 import config from './config';
 import Store from './src/Store';
 import CoinService from './src/services/CoinService';
-import CoinCollection from './src/collections/CoinCollection';
+import CoinCollection from './src/collections/CoinPriceCollection';
 import OrderCollection from './src/collections/OrderCollection';
 import BittrexProvider from './src/providers/BittrexProvider';
 import OrderService from './src/services/OrderService';
