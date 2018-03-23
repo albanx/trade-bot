@@ -1,6 +1,4 @@
-import OrderService from "./OrderService";
-
-export default class TradeService {
+export default class MonitorService {
   constructor(providers, coinService, orderService, display, refreshInterval) {
     this.providers = providers;
     this.coinService = coinService;
@@ -96,4 +94,5 @@ export default class TradeService {
     this.displayService.addRowOrders(orderRows);
     this.displayService.addRowNextAction(nextActionRows);
   }
+
 }

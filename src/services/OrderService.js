@@ -68,7 +68,7 @@ export default class OrderService {
     return null;
   }
 
-  async makeOrder(provider, priceMarket, orderType) {
+  async makeOrder(provider, priceMarket, orderType, coinPriceModel) {
 
     if (OrderService.isValidOrderType(orderType)) {
       let response = {};

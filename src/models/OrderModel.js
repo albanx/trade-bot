@@ -1,18 +1,18 @@
 export default class OrderModel {
 
-  constructor(id, provider, coin, baseCoin, price, status, type, datetime) {
-    this.id = id;
+  constructor(providerOrderId, provider, coin, baseCoin, priceOrder, orderType, status, datetime) {
+    this.providerOrderId = providerOrderId;
     this.provider = provider;
     this.coin = coin;
     this.baseCoin = baseCoin;
-    this.price = price;
+    this.priceOrder = priceOrder;
+    this.orderType = orderType;
     this.status = status;
-    this.type = type;
     this.datetime = datetime;
   }
 
-  getId() {
-    return this.id;
+  getOrderId() {
+    return this.providerOrderId;
   }
 
   getProvider() {
@@ -27,16 +27,16 @@ export default class OrderModel {
     return this.baseCoin;
   }
 
-  getPrice() {
-    return this.price;
+  getPriceOrder() {
+    return this.priceOrder;
   }
 
   getStatus() {
     return this.status;
   }
 
-  getType() {
-    return this.type;
+  getOrderType() {
+    return this.orderType;
   }
 
   getDatetime() {

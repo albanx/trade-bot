@@ -4,11 +4,11 @@ const request = {};
 request.post = request.get = (options) => new Promise((resolve, reject) => {
   let file = '';
 
-  if (options.url.indexOf(env.API_URL_BITSTAMP + '/sell') > -1 ) {
+  if (options.url.indexOf(env.BITSTAMP_API_URL + '/sell') > -1 ) {
     file = './tests/__mocks__/bitstamp-sell-response.json';
   }
 
-  if (options.url.indexOf(env.API_URL_BITSTAMP + '/buy') > -1 ) {
+  if (options.url.indexOf(env.BITSTAMP_API_URL + '/buy') > -1 ) {
     file = './tests/__mocks__/bitstamp-buy-response.json';
   }
 

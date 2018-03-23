@@ -2,113 +2,91 @@ import Provider from './ProviderInterface';
 import env from '../../env';
 import crypto from 'crypto';
 
-const API_URL = env.API_URL_BITSTAMP;
+const API_URL = env.BITSTAMP_API_URL;
+const API_KEY = env.BITSTAMP_API_KEY;
+const API_SECRET = env.BITSTAMP_API_SECRET;
+const CUSTOMER_ID = env.BITSTAMP_CUSTOMER_ID;
 
 export default class BitstampProvider extends Provider {
-  constructor(request, coin, baseCoin, quantity) {
+  constructor(request, quantity) {
     super();
     this.request = request;
-    this.coin = coin;
-    this.baseCoin = baseCoin;
     this.quantity = quantity;
   }
 
-  getName() {
+  static get NAME() {
     return 'bitstamp';
-  }
-
-  async sellCoin(rate) {
-    const pair = this.getBasePair();
-    const response = await this.request.post({
-      url: `${API_URL}/sell/market/${pair}/`,
-      form: {
-        ...this.generateAuth(),
-        amount: this.quantity
-      },
-      json: true
-    });
-
-    return this.getResponse(response);
-  }
-
-  async buyCoin(rate) {
-    const pair = this.getBasePair(this.coin);
-    const response = await this.request.post({
-      url: `${API_URL}/buy/market/${pair}/`,
-      form: {
-        ...this.generateAuth(),
-        amount: this.quantity
-      },
-      json: true
-    });
-
-    return this.getResponse(response);
   }
 
   getCoin() {
     return this.coin;
   }
 
-  getBasePair() {
-    return `${this.coin}${this.baseCoin}`.toLowerCase();
+  getBasePair(coin, baseCoin) {
+    return `${coin.getCode()}${baseCoin.getCode()}`.toLowerCase();
   }
 
-  async getMarket(coinPair) {
-    return await this.request.get({
-      url: `${API_URL}/ticker/${coinPair}/`,
-      json: true
-    });
+  async sellCoin(coin, baseCoin) {
+    const pair = this.getBasePair(coin, baseCoin);
+    const url = `${API_URL}/sell/market/${pair}/`;
+    const json = true;
+    const form = {...this.generateAuth(), amount: this.quantity};
+    const response = await this.request.post({url, form, json});
+
+    return this.getResponse(response);
   }
 
-  async getCoinPrice() {
-    const market = await this.getMarket(this.getBasePair());
-    return parseFloat(market.last);
+  async buyCoin(coin, baseCoin) {
+    const pair = this.getBasePair(coin, baseCoin);
+    const url = `${API_URL}/buy/market/${pair}/`;
+    const json = true;
+    const form = {...this.generateAuth(), amount: this.quantity};
+    const response = await this.request.post({url, form, json});
+
+    return this.getResponse(response);
   }
 
+  async getCoinPrice(coin, baseCoin) {
+    const pair = this.getBasePair(coin, baseCoin);
+    const url = `${API_URL}/ticker/${pair}/`;
+    const json = true;
+    const response = await this.request.get({url, json});
 
+    return parseFloat(response['last']);
+  }
 
   async getOrder(id) {
-    const response = await this.request.post({
-      url: `${API_URL}/order_status/`,
-      form: {
-        ...this.generateAuth(),
-        id
-      },
-      json: true
-    });
+    const url = `${API_URL}/order_status/`;
+    const json = true;
+    const form = {...this.generateAuth(), id};
 
-    return response;
+    return await this.request.post({url, form, json});
   }
 
   async isOrderOpen(id) {
     const order = await this.getOrder(id);
-    return !order.finished;
+    return !order['finished'];
   }
 
-  async getBalance() {
-    const timestamp = new Date().getTime().toString();
-    const request = await this.request.post({
-      url: `${API_URL}/balance/${this.getBasePair()}/`,
-      form: this.generateAuth(),
-      json: true
-    });
+  async getBalance(coin, baseCoin) {
+    const url = `${API_URL}/balance/${this.getBasePair(coin, baseCoin)}/`;
+    const json = true;
+    const form = {...this.generateAuth(), id};
 
-    return request;
+    return await this.request.post({url, form, json});
   }
 
   generateAuth() {
-    const timestamp = new Date().getTime().toString();
+    const nonce = new Date().getTime().toString();
+    const key = API_KEY;
+    const signature = this.generateSign(nonce);
 
-    return {
-      key: env.API_KEY_BITSTAMP,
-      signature: this.generateSign(timestamp),
-      nonce: timestamp
-    }
+    return {key, signature, nonce};
   }
 
   generateSign(timestamp) {
-    const message = timestamp + env.CUSTOMER_ID_BITSTAMP + env.API_KEY_BITSTAMP;
-    return crypto.createHmac('sha256', env.API_SECRET_BITSTAMP).update(message).digest('hex').toUpperCase();
+    const message = timestamp + CUSTOMER_ID + API_KEY;
+    return crypto.createHmac('sha256', API_SECRET).update(message).digest('hex').toUpperCase();
   }
 
   getResponse(response) {

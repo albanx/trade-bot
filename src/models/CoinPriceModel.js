@@ -1,8 +1,8 @@
 export default class CoinPriceModel {
-  constructor(coin, provider, priceProvider, priceOrder, priceStart, lastUpdate) {
+  constructor(coin, baseCoin, provider, priceOrder, priceStart, lastUpdate) {
     this.coin = coin;
     this.provider = provider;
-    this.priceProvider = priceProvider;
+    this.baseCoin = baseCoin;
     this.priceOrder = priceOrder;
     this.priceStart = priceStart;
     this.lastUpdate = lastUpdate;
@@ -12,7 +12,23 @@ export default class CoinPriceModel {
     return this.coin;
   }
 
+  getBaseCoin() {
+    return this.baseCoin;
+  }
+
   getProvider() {
     return this.provider;
+  }
+
+  getPriceStart() {
+    return this.priceStart;
+  }
+
+  getPriceOrder() {
+    return this.priceOrder;
+  }
+
+  setPriceOrder(price) {
+    this.priceOrder = price;
   }
 }

@@ -11,7 +11,7 @@ export default class BittrexProvider extends Provider {
     this.quantity = tradeQuantity;
   }
 
-  getName() {
+  static get NAME() {
     return 'bittrex';
   }
 
