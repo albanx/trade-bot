@@ -16,7 +16,7 @@ const mediator = new EventMediator();
 // const dashboard = new Dashboard({});
 
 mediator.on(EVENTS.MONITOR_START, () =>{
-  console.log('start');
+  console.log('MONITOR_START');
 });
 
 mediator.on(EVENTS.MONITOR_LOAD_COINS, () =>{
@@ -26,6 +26,7 @@ mediator.on(EVENTS.MONITOR_LOAD_COINS, () =>{
 mediator.on(EVENTS.MONITOR_INIT_COINS, () =>{
   console.log('MONITOR_INIT_COINS');
 });
+
 mediator.on(EVENTS.MONITOR_CHECK_COIN, (model) =>{
   console.log('MONITOR_CHECK_COIN', model);
 });
