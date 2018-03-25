@@ -1,15 +1,6 @@
 import OrderModel from '../models/OrderModel';
 
-const createOrder = ({providerOrderId, provider, coin, baseCoin, priceOrder, orderType, status}) =>
-  new OrderModel(
-    providerOrderId,
-    provider,
-    coin,
-    baseCoin,
-    priceOrder,
-    orderType,
-    status,
-    new Date()
-  );
+const createOrder = ({coinExchangeId, exchangeOrderId, coin, baseCoin, exchange, priceOrder, orderType, status, dateCreated}) =>
+  new OrderModel({coinExchangeId, exchangeOrderId, coin, baseCoin, exchange, priceOrder, orderType, status, dateCreated});
 
 export default createOrder;

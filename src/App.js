@@ -1,39 +1,58 @@
-import request from 'request-promise-native';
-import config from './config';
+import config from '../config';
 import Store from './Store';
-import CoinService from './services/CoinPriceService';
-import CoinCollection from './collections/CoinPriceCollection';
+import CoinExchangeService from './services/CoinExchangeService';
+import CoinExchangeCollection from './collections/CoinExchangeCollection';
 import OrderCollection from './collections/OrderCollection';
-import BittrexProvider from './providers/BittrexProvider';
 import OrderService from './services/OrderService';
-import BitstampProvider from "./providers/BitstampProvider";
 import Dashboard from './Dashboard';
-import TradeService from "./services/TradeService";
-import createCoin from "./factories/CoinFactory";
-import createCoinPrice from "./factories/CoinPriceFactory";
+import TradeMonitorService from "./services/TradeMonitorService";
+import createCoinExchange from "./factories/CoinExchangeFactory";
+import BitstampExchange from "./exchanges/BitstampExchange";
+import EventMediator from "./EventMediator";
+import EVENTS from "./Events";
 
-const dashboard = new Dashboard({});
 
-const startTradingBot = async (providers) => {
-  const db = await new Store(config.HOST_MONGO, config.DB_NAME).openDb();
-  const co = await new CoinCollection(db).getCollection();
-  const hc = await new OrderCollection(db).getCollection();
-  const coinService = new CoinService(co);
-  const orderService = new OrderService(hc, 6);
-  const tradeService = new TradeService(providers, coinService, orderService, dashboard, 60);
+const mediator = new EventMediator();
+// const dashboard = new Dashboard({});
 
-  tradeService.startMonitor().catch(e => dashboard.logText.log(e));
+mediator.on(EVENTS.MONITOR_START, () =>{
+  console.log('start');
+});
+
+mediator.on(EVENTS.MONITOR_LOAD_COINS, () =>{
+  console.log('MONITOR_LOAD_COINS');
+});
+
+mediator.on(EVENTS.MONITOR_INIT_COINS, () =>{
+  console.log('MONITOR_INIT_COINS');
+});
+mediator.on(EVENTS.MONITOR_CHECK_COIN, (model) =>{
+  console.log('MONITOR_CHECK_COIN', model);
+});
+
+const LTC_BITSTAMP = createCoinExchange({
+  coin: 'LTC',
+  exchange: BitstampExchange.NAME,
+  baseCoin: 'EUR',
+  amount: 2
+});
+
+const tradeCoins = [LTC_BITSTAMP];
+
+
+const startTradingBot = async () => {
+  const store = new Store(config.HOST_MONGO, config.DB_NAME);
+  const database = await store.getDatabase();
+  const coinExchangeCollection = new CoinExchangeCollection(database);
+  const orderCollection = new OrderCollection(database);
+
+  const coinExchangeService = new CoinExchangeService(coinExchangeCollection);
+  const orderService = new OrderService(orderCollection, 6);
+
+  const tradeService = new TradeMonitorService(coinExchangeService, orderService, mediator, tradeCoins);
+  await tradeService.start().catch(e => console.log(e));
 };
 
-
-const liteCoin = createCoin({code: 'LTC', name: 'litecoin', supply: 0});
-const euroCoin = createCoin({code: 'EUR', name: 'euro', supply: 0});
-const provider = new BitstampProvider(request, 1);
-
-const providers = [
-  provider,
-  // new BittrexProvider(request, 'LTC', 'USDT', 1)
-];
-startTradingBot(providers).catch(e => console.log('error', e));
+startTradingBot().catch(e => console.log('error', e));
 
 

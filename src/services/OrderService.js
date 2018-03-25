@@ -1,91 +1,84 @@
+import OrderModel from "../models/OrderModel";
+import createOrder from "../factories/OrderFactory";
+
 export default class OrderService {
 
   constructor(collection, threshold) {
-    this.co = collection;
+    this.store = collection;
     this.threshold = threshold;
   }
 
-  static get ACTION_SELL() {
+  static get ORDER_SELL() {
     return 'sell';
   }
 
-  static get ACTION_BUY() {
+  static get ORDER_BUY() {
     return 'buy';
   }
 
-  static get NO_ACTION() {
-    return 'No Action';
-  }
-
   static isValidOrderType(orderType) {
-    return [OrderService.ACTION_BUY, OrderService.ACTION_SELL].indexOf(orderType) > -1;
+    return [OrderService.ORDER_SELL, OrderService.ORDER_BUY].indexOf(orderType) > -1;
   }
 
-  addToHistory(data) {
-    this.co.insert({...data, time: new Date()});
+  static getNextOrderTypeBasedOnLastOrder(orderType) {
+
+    if (orderType === OrderService.ORDER_BUY) {
+      return OrderService.ORDER_BUY
+    }
+
+    if (orderType === OrderService.ORDER_SELL) {
+      return OrderService.ORDER_SELL
+    }
+
+    return null;
   }
 
-  async findNextOrderType(coin, market, percentChange) {
-    const last = await this.co.findOne(
-      {coin, market},
-      {sort: {time: -1}, limit: 1}
-    );
+  async getNextOrderType(coinExchangeId, percentChange) {
+    const last = await this.store.getLastOrder({coinExchangeId});
 
     if (Math.abs(percentChange) > this.threshold) {
-      const nextOrderBasedOnMarket = percentChange > 0 ? this.ACTION_SELL : this.ACTION_BUY;
-      const nextOrderBasedOnLast = last ? this.getNextOrderType(last.action) : nextOrderBasedOnMarket;
+      const nextOrderBasedOnMarket = percentChange > 0 ? OrderService.ORDER_SELL : OrderService.ORDER_BUY;
+      const nextOrderBasedOnLast = last ? this.getNextOrderTypeBasedOnLastOrder(last.action) : nextOrderBasedOnMarket;
 
       if (!nextOrderBasedOnLast || nextOrderBasedOnLast === nextOrderBasedOnMarket) {
         return nextOrderBasedOnMarket;
       }
     }
 
-    return OrderService.NO_ACTION;
-  }
-
-  getNextOrderType(orderType) {
-
-    if (orderType === OrderService.ACTION_BUY) {
-      return OrderService.ACTION_SELL
-    }
-
-    if (orderType === OrderService.ACTION_SELL) {
-      return OrderService.ACTION_BUY
-    }
-
     return null;
   }
 
   getPriceNextAction(priceAction, nextAction) {
-    if (nextAction === OrderService.ACTION_SELL) {
+    if (nextAction === OrderService.ORDER_SELL) {
       return priceAction + priceAction * this.threshold / 100;
     }
 
-    if (nextAction === OrderService.ACTION_BUY) {
+    if (nextAction === OrderService.ORDER_BUY) {
       return priceAction - priceAction * this.threshold / 100;
     }
 
     return null;
   }
 
-  async makeOrder(provider, priceMarket, orderType, coinPriceModel) {
+  async saveOrder(coinExchangeModel, exchangeOrderId, orderType) {
+    const coinExchangeId = coinExchangeModel.getId();
+    const coin = coinExchangeModel.getCoin();
+    const exchange = coinExchangeModel.getExchange();
+    const baseCoin = coinExchangeModel.getBaseCoin();
+    const priceOrder = coinExchangeModel.getPriceOrder();
+    const status = 'open';
 
-    if (OrderService.isValidOrderType(orderType)) {
-      let response = {};
-      if (orderType === OrderService.ACTION_SELL) {
-        response = await provider.sellCoin(priceMarket);
-      } else if (orderType === OrderService.ACTION_BUY) {
-        response = await provider.buyCoin(priceMarket);
-      }
+    const order = createOrder({
+      coinExchangeId,
+      exchangeOrderId,
+      coin,
+      baseCoin,
+      exchange,
+      priceOrder,
+      orderType,
+      status
+    });
 
-      return response.orderId;
-    }
-
-    return null;
-  }
-
-  async getOrders(status) {
-    const orders = await this.co.find({status});
-    return orders.toArray();
+    await this.store.saveModel(order);
   }
 }

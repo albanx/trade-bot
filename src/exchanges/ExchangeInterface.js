@@ -1,5 +1,6 @@
-export default class ProviderInterface {
+export default class ExchangeInterface {
   getCoinPair(coinPriceModel) {
+
   }
 
   async sellCoin(coinPriceModel) {

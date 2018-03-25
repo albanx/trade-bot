@@ -12,6 +12,10 @@ request.post = request.get = (options) => new Promise((resolve, reject) => {
     file = './tests/__mocks__/bitstamp-buy-response.json';
   }
 
+  if (options.url.indexOf(env.BITSTAMP_API_URL + '/ticker') > -1 ) {
+    file = './tests/__mocks__/bitstamp-ticker.json';
+  }
+
   fs.readFile(file, 'utf8', (err, data) => {
     if (err)
       reject(err);

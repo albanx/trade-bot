@@ -1,9 +1,9 @@
-import Provider from './ProviderInterface';
+import ExchangeInterface from './ExchangeInterface';
 import env from '../../env';
 
 const API_URL = 'https://bittrex.com/api/v1.1';
 
-export default class BittrexProvider extends Provider {
+export default class BittrexExchange extends ExchangeInterface {
   constructor(request, baseCoin, tradeQuantity) {
     super();
     this.request = request;

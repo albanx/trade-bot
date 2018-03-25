@@ -1,4 +1,4 @@
-import Provider from './ProviderInterface';
+import ExchangeInterface from './ExchangeInterface';
 import env from '../../env';
 import crypto from 'crypto';
 
@@ -7,11 +7,10 @@ const API_KEY = env.BITSTAMP_API_KEY;
 const API_SECRET = env.BITSTAMP_API_SECRET;
 const CUSTOMER_ID = env.BITSTAMP_CUSTOMER_ID;
 
-export default class BitstampProvider extends Provider {
-  constructor(request, quantity) {
+export default class BitstampExchange extends ExchangeInterface {
+  constructor(request) {
     super();
     this.request = request;
-    this.quantity = quantity;
   }
 
   static get NAME() {
@@ -23,24 +22,32 @@ export default class BitstampProvider extends Provider {
   }
 
   getBasePair(coin, baseCoin) {
-    return `${coin.getCode()}${baseCoin.getCode()}`.toLowerCase();
+    return `${coin}${baseCoin}`.toLowerCase();
   }
 
-  async sellCoin(coin, baseCoin) {
+  async sellCoin(coinExchangeModel) {
+    const coin = coinExchangeModel.getCoin();
+    const baseCoin = coinExchangeModel.getBaseCoin();
+    const amount = coinExchangeModel.getAmount();
+
     const pair = this.getBasePair(coin, baseCoin);
     const url = `${API_URL}/sell/market/${pair}/`;
     const json = true;
-    const form = {...this.generateAuth(), amount: this.quantity};
+    const form = {...this.generateAuth(), amount};
     const response = await this.request.post({url, form, json});
 
     return this.getResponse(response);
   }
 
-  async buyCoin(coin, baseCoin) {
+  async buyCoin(coinExchangeModel) {
+    const coin = coinExchangeModel.getCoin();
+    const baseCoin = coinExchangeModel.getBaseCoin();
+    const amount = coinExchangeModel.getAmount();
+
     const pair = this.getBasePair(coin, baseCoin);
     const url = `${API_URL}/buy/market/${pair}/`;
     const json = true;
-    const form = {...this.generateAuth(), amount: this.quantity};
+    const form = {...this.generateAuth(), amount};
     const response = await this.request.post({url, form, json});
 
     return this.getResponse(response);

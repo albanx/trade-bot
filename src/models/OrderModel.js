@@ -1,22 +1,30 @@
-export default class OrderModel {
+import AbstractModel from "./AbstractModel";
 
-  constructor(providerOrderId, provider, coin, baseCoin, priceOrder, orderType, status, datetime) {
-    this.providerOrderId = providerOrderId;
-    this.provider = provider;
+export default class OrderModel extends AbstractModel {
+
+  constructor({id, coinExchangeId, exchangeOrderId, coin, baseCoin, exchange, priceOrder, orderType, status, dateCreated}) {
+    super();
+    this._id = id;
+    this.exchangeOrderId = exchangeOrderId;
+    this.exchange = exchange;
     this.coin = coin;
     this.baseCoin = baseCoin;
     this.priceOrder = priceOrder;
     this.orderType = orderType;
     this.status = status;
-    this.datetime = datetime;
+    this.dateCreated = dateCreated;
   }
 
-  getOrderId() {
-    return this.providerOrderId;
+  getId() {
+    return this._id;
   }
 
-  getProvider() {
-    return this.provider;
+  getExchangeOrderId() {
+    return this.exchangeOrderId;
+  }
+
+  getExchange() {
+    return this.exchange;
   }
 
   getCoin() {
@@ -39,7 +47,7 @@ export default class OrderModel {
     return this.orderType;
   }
 
-  getDatetime() {
-    return this.datetime;
+  getDateCreated() {
+    return this.dateCreated;
   }
 }

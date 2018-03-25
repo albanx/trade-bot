@@ -1,4 +1,4 @@
-import BitstampProvider from '../../src/providers/BitstampProvider';
+import BitstampProvider from '../../src/exchanges/BitstampExchange';
 import request from '../__mocks__/request';
 
 describe('BitstampProvider', () => {

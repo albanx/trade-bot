@@ -8,10 +8,10 @@ export default class Store {
 
     this.host = host;
     this.dbName = dbName;
-    this.db = this.openDb();
+    this.db = this.getDatabase();
   }
 
-  async openDb() {
+  async getDatabase() {
     const client = await mongo.MongoClient.connect(this.host);
     return client.db(this.dbName);
   }
