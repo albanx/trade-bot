@@ -12,25 +12,6 @@ import EventMediator from "./EventMediator";
 import EVENTS from "./Events";
 
 
-const mediator = new EventMediator();
-// const dashboard = new Dashboard({});
-
-mediator.on(EVENTS.MONITOR_START, () =>{
-  console.log('MONITOR_START');
-});
-
-mediator.on(EVENTS.MONITOR_LOAD_COINS, () =>{
-  console.log('MONITOR_LOAD_COINS');
-});
-
-mediator.on(EVENTS.MONITOR_INIT_COINS, () =>{
-  console.log('MONITOR_INIT_COINS');
-});
-
-mediator.on(EVENTS.MONITOR_CHECK_COIN, (model) =>{
-  console.log('MONITOR_CHECK_COIN', model);
-});
-
 const LTC_BITSTAMP = createCoinExchange({
   coin: 'LTC',
   exchange: BitstampExchange.NAME,
@@ -47,11 +28,60 @@ const startTradingBot = async () => {
   const coinExchangeCollection = new CoinExchangeCollection(database);
   const orderCollection = new OrderCollection(database);
 
-  const coinExchangeService = new CoinExchangeService(coinExchangeCollection);
-  const orderService = new OrderService(orderCollection, 6);
+  const mediator = new EventMediator();
+  const dashboard = new Dashboard({});
 
+  const coinExchangeService = new CoinExchangeService(coinExchangeCollection);
+  const orderService = new OrderService(orderCollection, 8);
   const tradeService = new TradeMonitorService(coinExchangeService, orderService, mediator, tradeCoins);
+
+
+  //display events
+  mediator.on(EVENTS.MONITOR_CYCLE, async coins => {
+
+    //current coin to monitor
+    dashboard.setPriceMonitorLabel(`Price Monitor - ${new Date()}`);
+    dashboard.addPriceMonitorRows(coins.map(c => [
+        c.getId().toString().substring(0, 4),
+        c.getCoin(),
+        c.getExchange(),
+        c.getPriceStart().toString(),
+        c.getPriceExchange().toString(),
+        c.getPriceOrder().toString(),
+        c.getPriceChange().toString()
+      ]
+    ));
+
+    //next order preview
+    dashboard.addRowNextAction( await Promise.all(coins.map(async c => {
+      const nextOrderType = await orderService.getNextOrderType(c.getId(), c.getPriceChange(), true);
+      const priceNextOrder = orderService.getPriceNextOrder(c.getPriceOrder(), nextOrderType);
+      const nextText = `${nextOrderType}@${priceNextOrder}`;
+
+      return [
+        c.getId().toString().substring(0, 4),
+        c.getCoin(),
+        c.getExchange(),
+        nextText,
+        c.getAmount()
+      ];
+    })));
+
+
+    //display current done orders
+    const orders = await orderService.getOrders();
+    dashboard.addRowOrders(orders.map(o => [
+      o.getCoin(),
+      o.getExchange(),
+      o.getExchangeOrderId(),
+      o.getStatus(),
+      o.getPriceOrder(),
+      o.getOrderType()
+    ]));
+  });
+
   await tradeService.start().catch(e => console.log(e));
+
 };
 
 startTradingBot().catch(e => console.log('error', e));

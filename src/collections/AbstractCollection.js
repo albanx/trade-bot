@@ -12,6 +12,12 @@ export default class AbstractCollection {
     return Promise.resolve(this.collection);
   }
 
+  async findAll(sort = -1) {
+    const c = await this.getCollection();
+    const items = await c.find({}, {sort: {$natural: sort}});
+    return items.toArray();
+  }
+
   async update(where, data) {
     const upsert = true;
     const collection = await this.getCollection();

@@ -1,4 +1,4 @@
-import request from "request";
+import request from "request-promise-native";
 import BitstampExchange from "../exchanges/BitstampExchange";
 import BittrexExchange from "../exchanges/BittrexExchange";
 import requestMock from "../../tests/__mocks__/request";

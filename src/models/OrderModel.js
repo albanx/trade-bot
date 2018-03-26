@@ -5,6 +5,7 @@ export default class OrderModel extends AbstractModel {
   constructor({id, coinExchangeId, exchangeOrderId, coin, baseCoin, exchange, priceOrder, orderType, status, dateCreated}) {
     super();
     this._id = id;
+    this.coinExchangeId = coinExchangeId;
     this.exchangeOrderId = exchangeOrderId;
     this.exchange = exchange;
     this.coin = coin;
@@ -17,6 +18,10 @@ export default class OrderModel extends AbstractModel {
 
   getId() {
     return this._id;
+  }
+
+  getCoinExchangeId() {
+    return this.coinExchangeId;
   }
 
   getExchangeOrderId() {

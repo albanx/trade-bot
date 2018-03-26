@@ -31,9 +31,9 @@ export default class Dashboard {
       return process.exit(0);
     });
 
-    this.header = ["Coin", "Market", "Start Price", "Market Price", "Action Price", "% Diff", "Action"];
-    this.headerOrder = ["Coin", "Market", "Order Id", "Status", "Price", "Action"];
-    this.headerPrediction = ["Order Id","Coin", "Market", "Next Action"];
+    this.header = ["ID", "Coin", "Exchange", "Start Price", "Exchange Price", "Order Price", "% Diff"];
+    this.headerOrder = ["Coin", "Exchange", "Order Id", "Status", "Price", "Order"];
+    this.headerPrediction = ["ID", "Coin", "Exchange", "Next Order", "Amount"];
     this.layoutScriptLog();
     this.layoutPriceMonitor();
     this.layoutOrders();
@@ -111,7 +111,6 @@ export default class Dashboard {
         right: 1,
         left: 1
       },
-      align: "left",
       data: [this.header]
     });
 
@@ -120,7 +119,7 @@ export default class Dashboard {
 
   layoutPrediction() {
     this.prediction = blessed.box({
-      label: "Next Action",
+      label: "Next Order",
       tags: true,
       padding: 1,
       width: "40%",

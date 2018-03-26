@@ -6,8 +6,8 @@ export default class OrderCollection extends AbstractCollection {
     this.name = 'orders';
   }
 
-  async getLastOrder(where) {
-    const c = await this.getCollection();
-    return await c.findOne(where, {sort: {time: -1}, limit: 1});
+  async findLastOrder(coinExchangeId) {
+    const coll = await this.getCollection();
+    return await coll.findOne({coinExchangeId}, {sort: {$natural: -1}});
   }
 }

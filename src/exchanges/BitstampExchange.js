@@ -59,7 +59,7 @@ export default class BitstampExchange extends ExchangeInterface {
     const json = true;
     const response = await this.request.get({url, json});
 
-    return parseFloat(response['last']);
+    return parseFloat(response.last);
   }
 
   async getOrder(id) {

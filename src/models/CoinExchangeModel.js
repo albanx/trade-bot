@@ -1,7 +1,7 @@
 import AbstractModel from "./AbstractModel";
 
 export default class CoinExchangeModel extends AbstractModel {
-  constructor({_id, coin, exchange, baseCoin, amount, priceExchange, priceOrder, priceStart, lastUpdate}) {
+  constructor({_id, coin, exchange, baseCoin, amount, priceExchange, priceOrder, priceStart, priceChange, lastUpdate}) {
     super();
     this._id = _id;
     this.coin = coin;
@@ -11,6 +11,7 @@ export default class CoinExchangeModel extends AbstractModel {
     this.priceExchange = priceExchange;
     this.priceOrder = priceOrder;
     this.priceStart = priceStart;
+    this.priceChange = priceChange;
     this.lastUpdate = lastUpdate;
   }
 
@@ -42,6 +43,10 @@ export default class CoinExchangeModel extends AbstractModel {
     return this.priceOrder;
   }
 
+  getPriceChange() {
+    return this.priceChange;
+  }
+
   setPriceExchange(price) {
     this.priceExchange = price;
   }
@@ -60,5 +65,9 @@ export default class CoinExchangeModel extends AbstractModel {
 
   setAmount(amount) {
     this.amount = 1;
+  }
+
+  setPriceChange(value) {
+    this.priceChange = value;
   }
 }

@@ -20,44 +20,59 @@ export default class OrderService {
     return [OrderService.ORDER_SELL, OrderService.ORDER_BUY].indexOf(orderType) > -1;
   }
 
-  static getNextOrderTypeBasedOnLastOrder(orderType) {
+  async getNextOrderTypeBasedOnLastOrder(coinExchangeId) {
+    const lastOrder = await this.getLastOrder(coinExchangeId);
 
-    if (orderType === OrderService.ORDER_BUY) {
-      return OrderService.ORDER_BUY
-    }
+    if (lastOrder) {
+      const orderType = lastOrder.getOrderType();
+      if (orderType === OrderService.ORDER_BUY) {
+        return OrderService.ORDER_SELL;
+      }
 
-    if (orderType === OrderService.ORDER_SELL) {
-      return OrderService.ORDER_SELL
-    }
-
-    return null;
-  }
-
-  async getNextOrderType(coinExchangeId, percentChange) {
-    const last = await this.store.getLastOrder({coinExchangeId});
-
-    if (Math.abs(percentChange) > this.threshold) {
-      const nextOrderBasedOnMarket = percentChange > 0 ? OrderService.ORDER_SELL : OrderService.ORDER_BUY;
-      const nextOrderBasedOnLast = last ? this.getNextOrderTypeBasedOnLastOrder(last.action) : nextOrderBasedOnMarket;
-
-      if (!nextOrderBasedOnLast || nextOrderBasedOnLast === nextOrderBasedOnMarket) {
-        return nextOrderBasedOnMarket;
+      if (orderType === OrderService.ORDER_SELL) {
+        return OrderService.ORDER_BUY;
       }
     }
 
     return null;
   }
 
-  getPriceNextAction(priceAction, nextAction) {
-    if (nextAction === OrderService.ORDER_SELL) {
-      return priceAction + priceAction * this.threshold / 100;
-    }
+  async getLastOrder(coinExchangeId) {
+    const order = await this.store.findLastOrder(coinExchangeId);
 
-    if (nextAction === OrderService.ORDER_BUY) {
-      return priceAction - priceAction * this.threshold / 100;
+    if (order) {
+      return createOrder(order);
     }
 
     return null;
+  }
+
+  async getNextOrderType(coinExchangeId, percentChange, preview = false) {
+    if (Math.abs(percentChange) > this.threshold || preview) {
+      const nextOrderBasedOnMarket = percentChange > 0 ? OrderService.ORDER_SELL : OrderService.ORDER_BUY;
+      const nextOrderBasedOnLast = await this.getNextOrderTypeBasedOnLastOrder(coinExchangeId);
+
+      return nextOrderBasedOnLast ? nextOrderBasedOnLast : nextOrderBasedOnMarket;
+    }
+
+    return null;
+  }
+
+  getPriceNextOrder(priceOrder, nextOrderType) {
+    if (nextOrderType === OrderService.ORDER_SELL) {
+      return priceOrder + priceOrder * this.threshold / 100;
+    }
+
+    if (nextOrderType === OrderService.ORDER_BUY) {
+      return priceOrder - priceOrder * this.threshold / 100;
+    }
+
+    return null;
+  }
+
+  async getOrders() {
+    const orders = await this.store.findAll();
+    return orders.map(o => createOrder(o));
   }
 
   async saveOrder(coinExchangeModel, exchangeOrderId, orderType) {
