@@ -16,7 +16,7 @@ const LTC_BITSTAMP = createCoinExchange({
   coin: 'LTC',
   exchange: BitstampExchange.NAME,
   baseCoin: 'EUR',
-  amount: 2
+  amount: 1
 });
 
 const tradeCoins = [LTC_BITSTAMP];
@@ -37,6 +37,8 @@ const startTradingBot = async () => {
 
 
   //display events
+  mediator.on(EVENTS.MONITOR_START, () => dashboard.log('Monitor start'));
+  mediator.on(EVENTS.MONITOR_LOAD_COINS, () => dashboard.log('Loading coins'));
   mediator.on(EVENTS.MONITOR_CYCLE, async coins => {
 
     //current coin to monitor
@@ -80,7 +82,7 @@ const startTradingBot = async () => {
     ]));
   });
 
-  await tradeService.start().catch(e => console.log(e));
+  await tradeService.start().catch(e => dashboard.error(e));
 
 };
 

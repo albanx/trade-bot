@@ -13,8 +13,6 @@ const DEFAULT_SCROLL_OPTIONS = {
   vi: true,
   mouse: true
 };
-
-
 export default class Dashboard {
   constructor(options) {
     this.color = options.color || "green";
@@ -65,8 +63,23 @@ export default class Dashboard {
     this.predictionTable.screen.render();
   }
 
+  now() {
+    const date = new Date();
+    const d = [date.getFullYear(), ('00' + (date.getMonth() + 1)).slice(-2), ('00' + date.getDate()).slice(-2)];
+    const t = [('00' + date.getHours()).slice(-2), ('00' + date.getMinutes()).slice(-2), ('00' + date.getSeconds()).slice(-2)]
+    return `${d.join('-')} ${t.join(':')}`;
+  }
+
   setPriceMonitorLabel(label) {
     this.modulesMenu.setLabel(chalk.yellow(label));
+  }
+
+  log(...params) {
+    this.logText.log(chalk.yellowBright(this.now(), ...params));
+  }
+
+  error(...params) {
+    this.logText.log(chalk.bold.red(...params));
   }
 
   layoutPriceMonitor() {
@@ -186,7 +199,7 @@ export default class Dashboard {
   }
 
   layoutScriptLog() {
-    this.log = blessed.box({
+    this.logBox = blessed.box({
       label: "Script log",
       padding: 1,
       width: "60%",
@@ -206,12 +219,12 @@ export default class Dashboard {
 
     this.logText = blessed.log({
       ...DEFAULT_SCROLL_OPTIONS,
-      parent: this.log,
+      parent: this.logBox,
       tags: true,
       width: "100%-5"
     });
 
-    this.screen.append(this.log);
+    this.screen.append(this.logBox);
     this.mapNavigationKeysToScrollLog();
   }
 
@@ -236,3 +249,5 @@ export default class Dashboard {
     });
   }
 }
+
+
