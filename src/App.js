@@ -25,14 +25,17 @@ const tradeCoins = [LTC_BITSTAMP];
 const startTradingBot = async () => {
   const store = new Store(config.HOST_MONGO, config.DB_NAME);
   const database = await store.getDatabase();
-  const coinExchangeCollection = new CoinExchangeCollection(database);
-  const orderCollection = new OrderCollection(database);
+  const coinExchangeCollection = await database.createCollection('coin_exchange');
+  const orderCollection = await database.createCollection('orders');
+
+  const coinExchangeRepo = new CoinExchangeCollection(coinExchangeCollection);
+  const orderRepo = new OrderCollection(orderCollection);
 
   const mediator = new EventMediator();
   const dashboard = new Dashboard({});
 
-  const coinExchangeService = new CoinExchangeService(coinExchangeCollection);
-  const orderService = new OrderService(orderCollection, 8);
+  const coinExchangeService = new CoinExchangeService(coinExchangeRepo);
+  const orderService = new OrderService(orderRepo, 8);
   const tradeService = new TradeMonitorService(coinExchangeService, orderService, mediator, tradeCoins);
 
 
@@ -82,6 +85,8 @@ const startTradingBot = async () => {
     ]));
   });
 
+  mediator.on('MONITOR_MAKE_ORDER', (coinExchangeModel, orderType) => dashboard.log('Making order', orderType));
+  mediator.on('MONITOR_ORDER_DONE', () => dashboard.log('Order done'));
   await tradeService.start().catch(e => dashboard.error(e));
 
 };

@@ -67,7 +67,7 @@ export default class TradeMonitorService {
 
   async checkCoin(coinExchangeModel) {
     this.emit(EVENTS.MONITOR_CHECK_COIN, coinExchangeModel);
-    const orderType = this.getOrderType(coinExchangeModel);
+    const orderType = await this.getOrderType(coinExchangeModel);
     if (orderType) {
       await this.makeOrder(coinExchangeModel, orderType);
     }
@@ -98,7 +98,7 @@ export default class TradeMonitorService {
     const priceOrder = coinExchange.getPriceOrder();
     const priceExchange = await this.getExchangePrice(coinExchange);
     coinExchange.setPriceExchange(priceExchange);
-    const percent = (priceExchange - priceOrder) * 100 / priceExchange;
+    const percent = (priceExchange - priceOrder) * 100 / Math.max(priceOrder, priceExchange);
 
     return percent.toFixed(2);
   }

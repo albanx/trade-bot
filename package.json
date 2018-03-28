@@ -9,7 +9,7 @@
     "clean": "rimraf build",
     "prettify": "prettier --write '**/*.{js,json,css}'",
     "precommit": "lint-staged",
-    "test": "jest"
+    "test": "jest --watchAll"
   },
   "prettier": {
     "singleQuote": true
