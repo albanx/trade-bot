@@ -1,6 +1,7 @@
 import ExchangeInterface from './ExchangeInterface';
 import env from '../../env';
 import crypto from 'crypto';
+import OrderService from "../services/OrderService";
 
 const API_URL = env.BITSTAMP_API_URL;
 const API_KEY = env.BITSTAMP_API_KEY;
@@ -98,11 +99,12 @@ export default class BitstampExchange extends ExchangeInterface {
 
   getResponse(response) {
     return {
-      success: response.id !== undefined,
+      success: response.status !== 'error',
       orderId: response.id,
-      type: response.type === 1 ? 'sell' : 'buy',
+      type: response.type === 1 ? OrderService.ORDER_SELL : OrderService.ORDER_BUY,
       price: response.price,
-      amount: response.amount
+      amount: response.amount,
+      error: response.reason ? response.reason.__all__.join(',') : ''
     }
   }
 }

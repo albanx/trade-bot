@@ -1,11 +1,11 @@
 import CoinExchangeService from "../../src/services/CoinExchangeService";
 import Collection from '../__mocks__/Collection';
-import CoinExchangeCollection from "../../src/collections/CoinExchangeCollection";
+import CoinExchangeRepository from "../../src/collections/CoinExchangeRepository";
 import coinExchangeModel from '../__mocks__/coinExchangeModel';
 
 describe('CoinExchangeService', () => {
   const coll = new Collection();
-  const repo = new CoinExchangeCollection(coll);
+  const repo = new CoinExchangeRepository(coll);
   const instance = new CoinExchangeService(repo);
 
   beforeEach(() => {

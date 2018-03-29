@@ -1,11 +1,10 @@
 import OrderService from "../../src/services/OrderService";
 import Collection from '../__mocks__/Collection';
-import coinExchangeModel from '../__mocks__/coinExchangeModel';
-import OrderCollection from "../../src/collections/OrderCollection";
+import OrderRepository from "../../src/collections/OrderRepository";
 
 describe('CoinExchangeService', () => {
   const coll = new Collection();
-  const repo = new OrderCollection(coll);
+  const repo = new OrderRepository(coll);
   const instance = new OrderService(repo);
 
   beforeEach(() => {
@@ -26,6 +25,12 @@ describe('CoinExchangeService', () => {
     expect(OrderService.isValidOrderType('asdasd')).toEqual(false);
   });
 
+  test('getNextOrderTypeBasedOnLastOrder', () => {
+    expect.assertions(1);
+    instance.getNextOrderTypeBasedOnLastOrder()
+  });
+
+  ///getNextOrderTypeBasedOnLastOrder
   // test('getCoinsToTrade', async () => {
   //   expect.assertions(1);
   //   const coins = await instance.getCoinsToTrade();

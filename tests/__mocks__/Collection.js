@@ -6,9 +6,9 @@ export default class Collection {
     return Promise.resolve(items);
   }
 
-  async findOne(sort = -1) {
-    const items = await this.collection.find({}, {sort: {$natural: sort}});
-    return items.toArray();
+  async findOne() {
+    const item = await this.find();
+    return item;
   }
 
   async update(where, data) {
@@ -18,5 +18,9 @@ export default class Collection {
 
   async save(model) {
     return Promise.resolve(`id_123`);
+  }
+
+  async findLastOrder(id) {
+
   }
 }

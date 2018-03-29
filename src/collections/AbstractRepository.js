@@ -1,4 +1,4 @@
-export default class AbstractCollection {
+export default class AbstractRepository {
   constructor(collection) {
     this.collection = collection;
   }

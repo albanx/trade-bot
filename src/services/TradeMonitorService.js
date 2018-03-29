@@ -86,11 +86,13 @@ export default class TradeMonitorService {
 
   async makeOrder(coinExchangeModel, orderType) {
     this.emit(EVENTS.MONITOR_MAKE_ORDER, coinExchangeModel, orderType);
-    const exchangeOrderId = await this.createExchangeOrder(coinExchangeModel, orderType);
-    if (exchangeOrderId) {
+    const response = await this.createExchangeOrder(coinExchangeModel, orderType);
+    if (response.success) {
       coinExchangeModel.setPriceOrder(coinExchangeModel.getPriceChanges());
-      await this.orderService.saveOrder(coinExchangeModel, exchangeOrderId, orderType);
+      await this.orderService.saveOrder(coinExchangeModel, response.orderId, orderType);
       this.emit(EVENTS.MONITOR_ORDER_DONE, coinExchangeModel, orderType);
+    } else {
+      this.emit(EVENTS.MONITOR_ORDER_ERROR, response.error, orderType);
     }
   }
 
@@ -108,14 +110,11 @@ export default class TradeMonitorService {
     const exchangeAdapter = this.getExchangeAdapter(exchange);
 
     if (OrderService.isValidOrderType(orderType)) {
-      let response = {};
       if (orderType === OrderService.ORDER_SELL) {
-        response = await exchangeAdapter.sellCoin(coinExchangeModel);
+        return await exchangeAdapter.sellCoin(coinExchangeModel);
       } else if (orderType === OrderService.ORDER_BUY) {
-        response = await exchangeAdapter.buyCoin(coinExchangeModel);
+        return await exchangeAdapter.buyCoin(coinExchangeModel);
       }
-
-      return response.orderId;
     }
 
     return null;

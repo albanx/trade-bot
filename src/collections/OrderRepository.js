@@ -1,6 +1,6 @@
-import AbstractCollection from "./AbstractCollection";
+import AbstractRepository from "./AbstractRepository";
 
-export default class OrderCollection extends AbstractCollection {
+export default class OrderRepository extends AbstractRepository {
   async findLastOrder(coinExchangeId) {
     return await this.collection.findOne({coinExchangeId}, {sort: {$natural: -1}});
   }
