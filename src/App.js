@@ -5,22 +5,32 @@ import CoinExchangeRepository from './collections/CoinExchangeRepository';
 import OrderRepository from './collections/OrderRepository';
 import OrderService from './services/OrderService';
 import Dashboard from './Dashboard';
-import TradeMonitorService from "./services/TradeMonitorService";
-import createCoinExchange from "./factories/CoinExchangeFactory";
-import BitstampExchange from "./exchanges/BitstampExchange";
-import EventMediator from "./EventMediator";
-import EVENTS from "./Events";
+import TradeMonitorService from './services/TradeMonitorService';
+import createCoinExchange from './factories/CoinExchangeFactory';
+import BitstampExchange from './exchanges/BitstampExchange';
+import EventMediator from './EventMediator';
+import EVENTS from './Events';
+import DashboardViewer from './DashboardViewer';
+import SimpleStrategy from './strategies/SimpleStrategy';
 
-
-const LTC_BITSTAMP = createCoinExchange({
+const ltcBitstamp = createCoinExchange({
   coin: 'LTC',
   exchange: BitstampExchange.NAME,
   baseCoin: 'EUR',
-  amount: 1
+  amount: 1,
+  strategy: { 
+    name: SimpleStrategy.NAME, 
+    params: {
+      lowThreshold: -15, highThreshold: 20, frequency: 60
+    }
+  }
 });
 
-const tradeCoins = [LTC_BITSTAMP];
-
+const tradeCoins = [ltcBitstamp];
+const dashboard = new Dashboard({});
+global.appLog = (msg) => {
+  dashboard.log(msg);
+};
 
 const startTradingBot = async () => {
   const store = new Store(config.HOST_MONGO, config.DB_NAME);
@@ -32,67 +42,35 @@ const startTradingBot = async () => {
   const orderRepo = new OrderRepository(orderCollection);
 
   const mediator = new EventMediator();
-  const dashboard = new Dashboard({});
 
   const coinExchangeService = new CoinExchangeService(coinExchangeRepo);
   const orderService = new OrderService(orderRepo, 15);
-  const tradeService = new TradeMonitorService(coinExchangeService, orderService, mediator, tradeCoins);
-
+  const tradeService = new TradeMonitorService(
+    coinExchangeService,
+    orderService,
+    mediator,
+    tradeCoins
+  );
 
   //display events
+  const dashboardViewer = new DashboardViewer(dashboard, orderService);
   mediator.on(EVENTS.MONITOR_START, () => dashboard.log('Monitor start'));
   mediator.on(EVENTS.MONITOR_LOAD_COINS, () => dashboard.log('Loading coins'));
   mediator.on(EVENTS.MONITOR_CYCLE, async coins => {
-
-    //current coin to monitor
-    dashboard.setPriceMonitorLabel(`Price Monitor - ${new Date()}`);
-    dashboard.addPriceMonitorRows(coins.map(c => [
-        c.getId().toString().substring(0, 4),
-        c.getCoin(),
-        c.getExchange(),
-        c.getPriceStart().toString(),
-        c.getPriceExchange().toString(),
-        c.getPriceOrder().toString(),
-        c.getPriceChange().toString()
-      ]
-    ));
-
-    //next order preview
-    dashboard.addRowNextAction( await Promise.all(coins.map(async c => {
-      const nextOrderType = await orderService.getNextOrderType(c.getId(), c.getPriceChange(), true);
-      const priceNextOrder = orderService.getPriceNextOrder(c.getPriceOrder(), nextOrderType);
-      const nextText = `${nextOrderType}@${priceNextOrder.toFixed(2)}`;
-
-      return [
-        c.getId().toString().substring(0, 4),
-        c.getCoin(),
-        c.getExchange(),
-        nextText,
-        c.getAmount()
-      ];
-    })));
-
-
-    //display current done orders
     const orders = await orderService.getOrders();
-    dashboard.addRowOrders(orders.map(o => [
-      o.getCoin(),
-      o.getExchange(),
-      o.getExchangeOrderId(),
-      o.getStatus(),
-      o.getPriceOrder(),
-      o.getOrderType()
-    ]));
+    dashboardViewer.showCoins(coins);
+    dashboardViewer.showNextOrders(coins);
+    dashboardViewer.showCurrentOrders(orders);
   });
-
-  mediator.on('MONITOR_MAKE_ORDER', (coinExchangeModel, orderType) => dashboard.log('Making order', orderType));
+  mediator.on('MONITOR_MAKE_ORDER', (coinExchangeModel, orderType) =>
+    dashboard.log('Making order', orderType)
+  );
   mediator.on('MONITOR_ORDER_DONE', () => dashboard.log('Order done'));
-  mediator.on('MONITOR_ORDER_ERROR', (error) => dashboard.error('Order error: ', error));
+  mediator.on('MONITOR_ORDER_ERROR', error =>
+    dashboard.error('Order error: ', error)
+  );
 
-  await tradeService.start().catch(e => dashboard.error(e));
-
+  await tradeService.start();
 };
 
-startTradingBot().catch(e => console.log('error', e));
-
-
+startTradingBot().catch(e => dashboard.error(e.message, e.error));

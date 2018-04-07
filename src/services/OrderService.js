@@ -1,11 +1,11 @@
 import OrderModel from "../models/OrderModel";
 import createOrder from "../factories/OrderFactory";
+import createStrategy from "../factories/StrategyFactory";
 
 export default class OrderService {
 
-  constructor(collection, threshold) {
+  constructor(collection) {
     this.store = collection;
-    this.threshold = threshold;
   }
 
   static get ORDER_SELL() {
@@ -20,23 +20,6 @@ export default class OrderService {
     return [OrderService.ORDER_SELL, OrderService.ORDER_BUY].indexOf(orderType) > -1;
   }
 
-  async getNextOrderTypeBasedOnLastOrder(coinExchangeId) {
-    const lastOrder = await this.getLastOrder(coinExchangeId);
-
-    if (lastOrder) {
-      const orderType = lastOrder.getOrderType();
-      if (orderType === OrderService.ORDER_BUY) {
-        return OrderService.ORDER_SELL;
-      }
-
-      if (orderType === OrderService.ORDER_SELL) {
-        return OrderService.ORDER_BUY;
-      }
-    }
-
-    return null;
-  }
-
   async getLastOrder(coinExchangeId) {
     const order = await this.store.findLastOrder(coinExchangeId);
 
@@ -47,27 +30,17 @@ export default class OrderService {
     return null;
   }
 
-  async getNextOrderType(coinExchangeId, percentChange, preview = false) {
-    if (Math.abs(percentChange) > this.threshold || preview) {
-      const nextOrderBasedOnMarket = percentChange > 0 ? OrderService.ORDER_SELL : OrderService.ORDER_BUY;
-      const nextOrderBasedOnLast = await this.getNextOrderTypeBasedOnLastOrder(coinExchangeId);
-
-      return nextOrderBasedOnLast ? nextOrderBasedOnLast : nextOrderBasedOnMarket;
-    }
-
-    return null;
+  async getOrderType(coinExchangeModel, preview = false) {
+    const configStrategy = coinExchangeModel.getStrategy();
+    const strategy = createStrategy(configStrategy.name, configStrategy.params);
+    const lastOrder = await this.getLastOrder(coinExchangeModel.getId());
+    return strategy.getNextOrderType(coinExchangeModel, lastOrder, preview);
   }
 
-  getPriceNextOrder(priceOrder, nextOrderType) {
-    if (nextOrderType === OrderService.ORDER_SELL) {
-      return priceOrder + priceOrder * this.threshold / 100;
-    }
-
-    if (nextOrderType === OrderService.ORDER_BUY) {
-      return priceOrder - priceOrder * this.threshold / 100;
-    }
-
-    return null;
+  getPreviewPriceNextOrder(coinExchangeModel, nextOrderType) {
+    const configStrategy = coinExchangeModel.getStrategy();
+    const strategy = createStrategy(configStrategy.name, configStrategy.params);
+    return strategy.getPriceNextOrder(coinExchangeModel, nextOrderType);
   }
 
   async getOrders() {

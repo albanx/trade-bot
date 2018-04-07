@@ -12,7 +12,7 @@ export default class Store {
   }
 
   async getDatabase() {
-    const client = await mongo.MongoClient.connect(this.host);
+    const client = await mongo.MongoClient.connect(this.host).catch(e => console.log('Error Connecting DB', e));
     return client.db(this.dbName);
   }
 }

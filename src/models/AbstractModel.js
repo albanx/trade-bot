@@ -4,7 +4,7 @@ export default class AbstractModel {
   }
 
   getId() {
-    return this._id;
+    return this._id ? this._id : '';
   }
 
   toObject() {

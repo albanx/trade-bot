@@ -1,6 +1,6 @@
 import CoinExchangeModel from "../models/CoinExchangeModel";
 
-const createCoinExchange = ({_id, coin, exchange, baseCoin, amount, priceExchange, priceOrder, priceStart, priceChange, lastUpdate}) =>
+const createCoinExchange = ({_id, coin, exchange, baseCoin, amount, priceExchange, priceOrder, priceStart, priceChange, lastUpdate, strategy}) =>
   new CoinExchangeModel(
     {
       _id,
@@ -12,7 +12,8 @@ const createCoinExchange = ({_id, coin, exchange, baseCoin, amount, priceExchang
       priceOrder,
       priceStart,
       priceChange,
-      lastUpdate
+      lastUpdate,
+      strategy
     }
   );
 

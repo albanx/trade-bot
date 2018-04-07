@@ -1,7 +1,8 @@
 import ExchangeInterface from './ExchangeInterface';
 import env from '../../env';
 import crypto from 'crypto';
-import OrderService from "../services/OrderService";
+import OrderService from '../services/OrderService';
+import { RequestException } from '../Exceptions';
 
 const API_URL = env.BITSTAMP_API_URL;
 const API_KEY = env.BITSTAMP_API_KEY;
@@ -26,39 +27,31 @@ export default class BitstampExchange extends ExchangeInterface {
     return `${coin}${baseCoin}`.toLowerCase();
   }
 
-  async sellCoin(coinExchangeModel) {
-    const coin = coinExchangeModel.getCoin();
-    const baseCoin = coinExchangeModel.getBaseCoin();
-    const amount = coinExchangeModel.getAmount();
+  async makeOrder(coinExchangeModel, orderType) {
+    if (OrderService.isValidOrderType(orderType)) {
+      const endPoint = orderType === OrderService.ORDER_SELL ? 'sell' : 'buy';
 
-    const pair = this.getBasePair(coin, baseCoin);
-    const url = `${API_URL}/sell/market/${pair}/`;
-    const json = true;
-    const form = {...this.generateAuth(), amount};
-    const response = await this.request.post({url, form, json});
-
-    return this.getResponse(response);
-  }
-
-  async buyCoin(coinExchangeModel) {
-    const coin = coinExchangeModel.getCoin();
-    const baseCoin = coinExchangeModel.getBaseCoin();
-    const amount = coinExchangeModel.getAmount();
-
-    const pair = this.getBasePair(coin, baseCoin);
-    const url = `${API_URL}/buy/market/${pair}/`;
-    const json = true;
-    const form = {...this.generateAuth(), amount};
-    const response = await this.request.post({url, form, json});
-
-    return this.getResponse(response);
+      const coin = coinExchangeModel.getCoin();
+      const baseCoin = coinExchangeModel.getBaseCoin();
+      const amount = coinExchangeModel.getAmount();
+      const pair = this.getBasePair(coin, baseCoin);
+      const url = `${API_URL}/${endPoint}/market/${pair}/`;
+      const json = true;
+      const form = { ...this.generateAuth(), amount };
+      const response = await this.request.post({ url, form, json }).catch(
+        e => { throw new RequestException('BitstampExchange::makeOrder', e) }
+      );
+      return this.getResponse(response);
+    }
   }
 
   async getCoinPrice(coin, baseCoin) {
     const pair = this.getBasePair(coin, baseCoin);
     const url = `${API_URL}/ticker/${pair}/`;
     const json = true;
-    const response = await this.request.get({url, json});
+    const response = await this.request.get({ url, json }).catch(
+      e => { throw new RequestException('BitstampExchange::getCoinPrice', e) }
+    );
 
     return parseFloat(response.last);
   }
@@ -66,9 +59,9 @@ export default class BitstampExchange extends ExchangeInterface {
   async getOrder(id) {
     const url = `${API_URL}/order_status/`;
     const json = true;
-    const form = {...this.generateAuth(), id};
+    const form = { ...this.generateAuth(), id };
 
-    return await this.request.post({url, form, json});
+    return await this.request.post({ url, form, json });
   }
 
   async isOrderOpen(id) {
@@ -79,9 +72,9 @@ export default class BitstampExchange extends ExchangeInterface {
   async getBalance(coin, baseCoin) {
     const url = `${API_URL}/balance/${this.getBasePair(coin, baseCoin)}/`;
     const json = true;
-    const form = {...this.generateAuth(), id};
+    const form = { ...this.generateAuth(), id };
 
-    return await this.request.post({url, form, json});
+    return await this.request.post({ url, form, json });
   }
 
   generateAuth() {
@@ -89,22 +82,27 @@ export default class BitstampExchange extends ExchangeInterface {
     const key = API_KEY;
     const signature = this.generateSign(nonce);
 
-    return {key, signature, nonce};
+    return { key, signature, nonce };
   }
 
   generateSign(timestamp) {
     const message = timestamp + CUSTOMER_ID + API_KEY;
-    return crypto.createHmac('sha256', API_SECRET).update(message).digest('hex').toUpperCase();
+    return crypto
+      .createHmac('sha256', API_SECRET)
+      .update(message)
+      .digest('hex')
+      .toUpperCase();
   }
 
   getResponse(response) {
     return {
       success: response.status !== 'error',
       orderId: response.id,
-      type: response.type === 1 ? OrderService.ORDER_SELL : OrderService.ORDER_BUY,
+      type:
+        response.type === 1 ? OrderService.ORDER_SELL : OrderService.ORDER_BUY,
       price: response.price,
       amount: response.amount,
       error: response.reason ? response.reason.__all__.join(',') : ''
-    }
+    };
   }
 }

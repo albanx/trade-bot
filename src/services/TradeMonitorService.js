@@ -40,14 +40,9 @@ export default class TradeMonitorService {
     }
   }
 
-  async startMonitor() {
-    this.emit(EVENTS.MONITOR_CYCLE, this.coinsToTrade);
-    await Promise.all(this.coinsToTrade.map(c => this.checkCoin(c)));
-    setTimeout(() => this.startMonitor(), this.refreshInterval);
-  }
-
   async initializeCoinPrice(coin) {
-    const priceExchange = await this.getExchangePrice(coin);
+    await this.updateExchangePrice(coin);
+    const priceExchange = coin.getPriceExchange();
 
     if (!coin.getPriceOrder()) coin.setPriceOrder(priceExchange);
     if (!coin.getPriceStart()) coin.setPriceStart(priceExchange);
@@ -56,32 +51,31 @@ export default class TradeMonitorService {
     if (!coin.getPriceChange()) coin.setPriceChange(0);
   }
 
-  async getExchangePrice(coinExchange) {
-    const coin = coinExchange.getCoin();
-    const exchange = coinExchange.getExchange();
-    const baseCoin = coinExchange.getBaseCoin();
+  async updateExchangePrice(coinExchangeModel) {
+    const coin = coinExchangeModel.getCoin();
+    const exchange = coinExchangeModel.getExchange();
+    const baseCoin = coinExchangeModel.getBaseCoin();
     const exchangeAdapter = this.getExchangeAdapter(exchange);
+    const priceExchange = await exchangeAdapter.getCoinPrice(coin, baseCoin);
+    coinExchangeModel.setPriceExchange(priceExchange);
+  }
 
-    return await exchangeAdapter.getCoinPrice(coin, baseCoin);
+  async startMonitor() {
+    this.emit(EVENTS.MONITOR_CYCLE, this.coinsToTrade);
+    await Promise.all(this.coinsToTrade.map(c => this.checkCoin(c)));
+    setTimeout(() => this.startMonitor(), this.refreshInterval);
   }
 
   async checkCoin(coinExchangeModel) {
     this.emit(EVENTS.MONITOR_CHECK_COIN, coinExchangeModel);
-    const orderType = await this.getOrderType(coinExchangeModel);
+    await this.updateExchangePrice(coinExchangeModel);
+    const orderType = await this.orderService.getOrderType(coinExchangeModel);
+    
     if (orderType) {
-      await this.makeOrder(coinExchangeModel, orderType);
+      this.emit(EVENTS.MONITOR_MAKE_ORDER, coinExchangeModel, orderType);
+      // await this.makeOrder(coinExchangeModel, orderType);
     }
     await this.coinExchangeService.saveCoinExchange(coinExchangeModel);
-  }
-
-  async getOrderType(coinExchangeModel) {
-    const id = coinExchangeModel.getId();
-    const percentChange = await this.getPriceChanges(coinExchangeModel);
-    coinExchangeModel.setPriceChange(percentChange);
-
-    this.emit(EVENTS.MONITOR_PRICE_CHANGE, coinExchangeModel, percentChange);
-
-    return await this.orderService.getNextOrderType(id, percentChange);
   }
 
   async makeOrder(coinExchangeModel, orderType) {
@@ -96,28 +90,10 @@ export default class TradeMonitorService {
     }
   }
 
-  async getPriceChanges(coinExchange) {
-    const priceOrder = coinExchange.getPriceOrder();
-    const priceExchange = await this.getExchangePrice(coinExchange);
-    coinExchange.setPriceExchange(priceExchange);
-    const percent = (priceExchange - priceOrder) * 100 / Math.max(priceOrder, priceExchange);
-
-    return percent.toFixed(2);
-  }
-
   async createExchangeOrder(coinExchangeModel, orderType) {
     const exchange = coinExchangeModel.getExchange();
     const exchangeAdapter = this.getExchangeAdapter(exchange);
-
-    if (OrderService.isValidOrderType(orderType)) {
-      if (orderType === OrderService.ORDER_SELL) {
-        return await exchangeAdapter.sellCoin(coinExchangeModel);
-      } else if (orderType === OrderService.ORDER_BUY) {
-        return await exchangeAdapter.buyCoin(coinExchangeModel);
-      }
-    }
-
-    return null;
+    return await exchangeAdapter.makeOrder(coinExchangeModel, orderType);
   }
 
   getExchangeAdapter(name) {
