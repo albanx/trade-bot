@@ -12,16 +12,6 @@ export default class DiffBasedStrategy extends AbstractStrategy {
     return 'difference';
   }
 
-  getNextOrderType(coinExchangeModel, lastOrder, preview) {
-    this.updatePriceChanges(coinExchangeModel);
-    const nextOrderBasedOnMarket = preview
-      ? this.getPreviewOrderType(coinExchangeModel)
-      : this.getOrderTypeBasedOnPrice(coinExchangeModel);
-    const nextOrderBasedOnLast = this.getOrderTypeBasedOnLastOrder(lastOrder);
-
-    return nextOrderBasedOnLast ? nextOrderBasedOnLast : nextOrderBasedOnMarket;
-  }
-
   //privates
   getPriceNextOrder(coinExchangeModel, nextOrderType) {
     const priceOrder = coinExchangeModel.getPriceOrder();
@@ -36,28 +26,23 @@ export default class DiffBasedStrategy extends AbstractStrategy {
     return null;
   }
 
+  isOrderPossible(coinExchangeModel, nextOrderType) {
+    const diff = coinExchangeModel.getPriceChange();
+    if (nextOrderType === OrderService.ORDER_SELL && diff >= this.baseCoinDiff) {
+      return true;
+    }
+
+    if (nextOrderType === OrderService.ORDER_BUY && diff <= -this.baseCoinDiff) {
+      return true;
+    }
+
+    return false;
+  }
+
   updatePriceChanges(coinExchangeModel) {
     const priceExchange = coinExchangeModel.getPriceExchange();
     const priceOrder = coinExchangeModel.getPriceOrder();
     const diff = priceExchange - priceOrder;
     coinExchangeModel.setPriceChange(diff);
-  }
-
-  getPreviewOrderType(coinExchangeModel) {
-    const diff = coinExchangeModel.getPriceChange();
-    return diff > 0 ? OrderService.ORDER_SELL : OrderService.ORDER_BUY;
-  }
-
-  getOrderTypeBasedOnPrice(coinExchangeModel) {
-    const diff = coinExchangeModel.getPriceChange();
-    if (diff <= -this.baseCoinDiff) {
-      return OrderService.ORDER_BUY;
-    }
-
-    if (diff >= this.baseCoinDiff) {
-      return OrderService.ORDER_SELL;
-    }
-
-    return null;
   }
 }

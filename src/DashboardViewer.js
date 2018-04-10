@@ -17,7 +17,8 @@ export default class DashboardViewer {
         c.getPriceStart().toString(),
         c.getPriceExchange().toFixed(4).toString(),
         c.getPriceOrder().toString(),
-        c.getPriceChange().toFixed(2)
+        c.getPriceChange().toFixed(2),
+        c.getTradeMode()
       ])
     );
   }

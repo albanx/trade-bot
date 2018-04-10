@@ -1,7 +1,7 @@
 import AbstractModel from "./AbstractModel";
 
 export default class CoinExchangeModel extends AbstractModel {
-  constructor({_id, coin, exchange, baseCoin, amount, priceExchange, priceOrder, priceStart, priceChange, lastUpdate, strategy}) {
+  constructor({_id, coin, exchange, baseCoin, amount, priceExchange, priceOrder, priceStart, priceChange, lastUpdate, strategy, tradeMode}) {
     super();
     this._id = _id;
     this.coin = coin;
@@ -14,6 +14,7 @@ export default class CoinExchangeModel extends AbstractModel {
     this.priceChange = priceChange;
     this.lastUpdate = lastUpdate;
     this.strategy = strategy;
+    this.tradeMode = tradeMode;
   }
 
   getCoin() {
@@ -51,6 +52,10 @@ export default class CoinExchangeModel extends AbstractModel {
   getStrategy() {
     return this.strategy;
   }
+
+  getTradeMode() {
+    return this.tradeMode;
+  }
   
   setPriceExchange(price) {
     this.priceExchange = price;
@@ -74,5 +79,9 @@ export default class CoinExchangeModel extends AbstractModel {
 
   setPriceChange(value) {
     this.priceChange = value;
+  }
+
+  setTradeMode(value) {
+    this.tradeMode = value;
   }
 }

@@ -6,7 +6,7 @@ request.post = request.get = (options) => new Promise((resolve, reject) => {
 
   if (options.url.indexOf(env.BITSTAMP_API_URL + '/sell') > -1 ) {
     return resolve({
-      "id": 1,
+      "id": Math.random(),
       "datetime": "2018-03-28 11:00:01",
       "type": 0,
       "price": 123,
@@ -16,7 +16,7 @@ request.post = request.get = (options) => new Promise((resolve, reject) => {
 
   if (options.url.indexOf(env.BITSTAMP_API_URL + '/buy') > -1 ) {
     return resolve({
-      "id": 1,
+      "id": Math.random(),
       "datetime": "2018-03-28 11:00:01",
       "type": 1,
       "price": 123,

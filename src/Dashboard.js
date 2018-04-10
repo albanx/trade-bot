@@ -29,7 +29,7 @@ export default class Dashboard {
       return process.exit(0);
     });
 
-    this.header = ["ID", "Coin", "Exchange", "Start Price", "Exchange Price", "Order Price", "Diff"];
+    this.header = ["ID", "Coin", "Exchange", "Start Price", "Exchange Price", "Order Price", "Diff", "Mode"];
     this.headerOrder = ["Coin", "Exchange", "Order Id", "Status", "Price", "Order"];
     this.headerPrediction = ["ID", "Coin", "Exchange", "Next Order", "Amount"];
     this.layoutScriptLog();
@@ -92,7 +92,7 @@ export default class Dashboard {
       label: "Price Monitor",
       mouse: true,
       tags: true,
-      width: "50%",
+      width: "60%",
       height: "66%",
       left: "0%",
       top: "36%",
@@ -175,9 +175,9 @@ export default class Dashboard {
       label: "Orders Log",
       tags: true,
       padding: 1,
-      width: "50%",
+      width: "40%",
       height: "66%",
-      left: "50%",
+      left: "60%",
       top: "36%",
       border: {
         type: "line"

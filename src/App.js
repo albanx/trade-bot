@@ -19,6 +19,7 @@ const ltcBitstamp = createCoinExchange({
   exchange: BitstampExchange.NAME,
   baseCoin: 'EUR',
   amount: 1,
+  tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
   strategy: { 
     name: SimpleStrategy.NAME, 
     params: {
@@ -32,6 +33,7 @@ const ltcBitstampDiff = createCoinExchange({
   exchange: BitstampExchange.NAME,
   baseCoin: 'EUR',
   amount: 1,
+  tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
   strategy: { 
     name: DiffBasedStrategy.NAME, 
     params: {
@@ -46,8 +48,8 @@ global.appLog = (msg) => {
   dashboard.log(msg);
 };
 
-global.appWarning = (msg) => {
-  dashboard.warning(msg);
+global.appWarning = (msg, e) => {
+  dashboard.warning(msg, e.stack);
 };
 
 const startTradingBot = async () => {

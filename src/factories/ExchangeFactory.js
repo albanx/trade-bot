@@ -1,8 +1,6 @@
-import request from "request-promise-native";
-import BitstampExchange from "../exchanges/BitstampExchange";
-import BittrexExchange from "../exchanges/BittrexExchange";
-import requestMock from "../../tests/__mocks__/request";
-import env from '../../env';
+import request from 'request-promise-native';
+import BitstampExchange from '../exchanges/BitstampExchange';
+import BittrexExchange from '../exchanges/BittrexExchange';
 
 /**
  *
@@ -10,12 +8,11 @@ import env from '../../env';
  * @returns {ExchangeInterface}
  */
 const createExchange = name => {
-  const req = env.SIMULATION_MODE ? requestMock : request;
   switch (name) {
     case BitstampExchange.NAME:
-      return new BitstampExchange(req);
+      return new BitstampExchange(request);
     case BittrexExchange.NAME:
-      return new BittrexExchange(req);
+      return new BittrexExchange(request);
   }
 };
 

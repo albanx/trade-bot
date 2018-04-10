@@ -14,6 +14,14 @@ export default class TradeMonitorService {
     this.emitter = emitter;
   }
 
+  static get TRADE_MODE_LIVE() {
+    return 'live';
+  }
+
+  static get TRADE_MODE_SIMULATION() {
+    return 'simulation';
+  }
+
   emit(event, ...params) {
     this.emitter.emit(event, ...params);
   }
@@ -32,6 +40,7 @@ export default class TradeMonitorService {
           ( item.getCoin() === item2.getCoin() &&
           item.getExchange() === item2.getExchange() &&
           item.getBaseCoin() === item2.getBaseCoin() && 
+          item.getTradeMode() === item2.getTradeMode() && 
           item.getStrategy().name === item2.getStrategy().name )
         )
     );
@@ -51,6 +60,7 @@ export default class TradeMonitorService {
     await this.updateExchangePrice(coin);
     const priceExchange = coin.getPriceExchange();
 
+    if (!coin.getTradeMode()) coin.setTradeMode(TradeMonitorService.TRADE_MODE_SIMULATION);
     if (!coin.getPriceOrder()) coin.setPriceOrder(priceExchange);
     if (!coin.getPriceStart()) coin.setPriceStart(priceExchange);
     if (!coin.getPriceExchange()) coin.setPriceExchange(priceExchange);
@@ -70,7 +80,7 @@ export default class TradeMonitorService {
   async startMonitor() {
     this.emit(EVENTS.MONITOR_CYCLE, this.coinsToTrade);
     await Promise.all(this.coinsToTrade.map(c => this.checkCoin(c))).catch( e => {
-      appWarning(e.message);
+      appWarning(e.message, e);
     });
     setTimeout(() => this.startMonitor(), this.refreshInterval);
   }
@@ -81,8 +91,7 @@ export default class TradeMonitorService {
     const orderType = await this.orderService.getOrderType(coinExchangeModel);
     
     if (orderType) {
-      this.emit(EVENTS.MONITOR_MAKE_ORDER, coinExchangeModel, orderType);
-      // await this.makeOrder(coinExchangeModel, orderType);
+      await this.makeOrder(coinExchangeModel, orderType);
     }
     await this.coinExchangeService.saveCoinExchange(coinExchangeModel);
   }
@@ -91,7 +100,7 @@ export default class TradeMonitorService {
     this.emit(EVENTS.MONITOR_MAKE_ORDER, coinExchangeModel, orderType);
     const response = await this.createExchangeOrder(coinExchangeModel, orderType);
     if (response.success) {
-      coinExchangeModel.setPriceOrder(coinExchangeModel.getPriceChanges());
+      coinExchangeModel.setPriceOrder(coinExchangeModel.getPriceExchange());
       await this.orderService.saveOrder(coinExchangeModel, response.orderId, orderType);
       this.emit(EVENTS.MONITOR_ORDER_DONE, coinExchangeModel, orderType);
     } else {
@@ -100,9 +109,24 @@ export default class TradeMonitorService {
   }
 
   async createExchangeOrder(coinExchangeModel, orderType) {
-    const exchange = coinExchangeModel.getExchange();
-    const exchangeAdapter = this.getExchangeAdapter(exchange);
-    return await exchangeAdapter.makeOrder(coinExchangeModel, orderType);
+    if (coinExchangeModel.getTradeMode() === TradeMonitorService.TRADE_MODE_LIVE) {
+      const exchange = coinExchangeModel.getExchange();
+      const exchangeAdapter = this.getExchangeAdapter(exchange);
+      return await exchangeAdapter.makeOrder(coinExchangeModel, orderType);
+    }
+
+    return await this.makeSimulatedOrder(coinExchangeModel, orderType);
+  }
+
+  async makeSimulatedOrder(coinExchangeModel, orderType) {
+    return Promise.resolve({
+      success: true,
+      orderId: `simulated_${Math.random(1, 9999)}`,
+      type: orderType,
+      price: coinExchangeModel.getPriceExchange(),
+      amount: coinExchangeModel.getAmount(),
+      error: ''
+    });
   }
 
   getExchangeAdapter(name) {
