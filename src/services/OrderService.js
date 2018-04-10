@@ -22,7 +22,6 @@ export default class OrderService {
 
   async getLastOrder(coinExchangeId) {
     const order = await this.store.findLastOrder(coinExchangeId);
-
     if (order) {
       return createOrder(order);
     }

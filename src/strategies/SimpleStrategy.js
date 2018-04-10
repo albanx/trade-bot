@@ -28,7 +28,7 @@ export default class SimpleStrategy {
     }
 
     if (nextOrderType === OrderService.ORDER_BUY) {
-      return priceOrder - priceOrder * this.lowThreshold / 100;
+      return priceOrder + priceOrder * this.lowThreshold / 100;
     }
 
     return null;

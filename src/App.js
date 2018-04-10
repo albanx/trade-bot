@@ -12,6 +12,7 @@ import EventMediator from './EventMediator';
 import EVENTS from './Events';
 import DashboardViewer from './DashboardViewer';
 import SimpleStrategy from './strategies/SimpleStrategy';
+import DiffBasedStrategy from './strategies/DiffBasedStrategy';
 
 const ltcBitstamp = createCoinExchange({
   coin: 'LTC',
@@ -26,10 +27,27 @@ const ltcBitstamp = createCoinExchange({
   }
 });
 
-const tradeCoins = [ltcBitstamp];
+const ltcBitstampDiff = createCoinExchange({
+  coin: 'LTC',
+  exchange: BitstampExchange.NAME,
+  baseCoin: 'EUR',
+  amount: 1,
+  strategy: { 
+    name: DiffBasedStrategy.NAME, 
+    params: {
+      baseCoinDiff: 2
+    }
+  }
+});
+
+const tradeCoins = [ltcBitstamp, ltcBitstampDiff];
 const dashboard = new Dashboard({});
 global.appLog = (msg) => {
   dashboard.log(msg);
+};
+
+global.appWarning = (msg) => {
+  dashboard.warning(msg);
 };
 
 const startTradingBot = async () => {
@@ -44,7 +62,7 @@ const startTradingBot = async () => {
   const mediator = new EventMediator();
 
   const coinExchangeService = new CoinExchangeService(coinExchangeRepo);
-  const orderService = new OrderService(orderRepo, 15);
+  const orderService = new OrderService(orderRepo);
   const tradeService = new TradeMonitorService(
     coinExchangeService,
     orderService,
@@ -63,14 +81,26 @@ const startTradingBot = async () => {
     dashboardViewer.showCurrentOrders(orders);
   });
   mediator.on('MONITOR_MAKE_ORDER', (coinExchangeModel, orderType) =>
-    dashboard.log('Making order', orderType)
+    dashboard.log(
+      'Making order', 
+      orderType, 
+      coinExchangeModel.getId().toString().substring(0, 4)
+    )
   );
   mediator.on('MONITOR_ORDER_DONE', () => dashboard.log('Order done'));
   mediator.on('MONITOR_ORDER_ERROR', error =>
     dashboard.error('Order error: ', error)
   );
 
-  await tradeService.start();
+  const startWrapper = async () => {
+    await tradeService.start().catch(e => {
+      dashboard.error(e.message, e.error);
+      dashboard.log('Retry in 10 seconds...');
+      setTimeout(() => startWrapper(), 10000);
+    });
+  }
+
+  startWrapper();
 };
 
 startTradingBot().catch(e => dashboard.error(e.message, e.error));

@@ -2,7 +2,7 @@ import ExchangeInterface from './ExchangeInterface';
 import env from '../../env';
 import crypto from 'crypto';
 import OrderService from '../services/OrderService';
-import { RequestException } from '../Exceptions';
+import { AppRequestException } from '../Exceptions';
 
 const API_URL = env.BITSTAMP_API_URL;
 const API_KEY = env.BITSTAMP_API_KEY;
@@ -19,8 +19,8 @@ export default class BitstampExchange extends ExchangeInterface {
     return 'bitstamp';
   }
 
-  getCoin() {
-    return this.coin;
+  static get FEE() {
+    return 0.25/100;
   }
 
   getBasePair(coin, baseCoin) {
@@ -30,7 +30,6 @@ export default class BitstampExchange extends ExchangeInterface {
   async makeOrder(coinExchangeModel, orderType) {
     if (OrderService.isValidOrderType(orderType)) {
       const endPoint = orderType === OrderService.ORDER_SELL ? 'sell' : 'buy';
-
       const coin = coinExchangeModel.getCoin();
       const baseCoin = coinExchangeModel.getBaseCoin();
       const amount = coinExchangeModel.getAmount();
@@ -38,8 +37,9 @@ export default class BitstampExchange extends ExchangeInterface {
       const url = `${API_URL}/${endPoint}/market/${pair}/`;
       const json = true;
       const form = { ...this.generateAuth(), amount };
-      const response = await this.request.post({ url, form, json }).catch(
-        e => { throw new RequestException('BitstampExchange::makeOrder', e) }
+      const timeout = 10000;
+      const response = await this.request.post({ url, form, json, timeout }).catch(
+        e => { throw new AppRequestException('BitstampExchange::makeOrder', e) }
       );
       return this.getResponse(response);
     }
@@ -49,23 +49,30 @@ export default class BitstampExchange extends ExchangeInterface {
     const pair = this.getBasePair(coin, baseCoin);
     const url = `${API_URL}/ticker/${pair}/`;
     const json = true;
-    const response = await this.request.get({ url, json }).catch(
-      e => { throw new RequestException('BitstampExchange::getCoinPrice', e) }
+    const timeout = 10000;
+    const response = await this.request.get({ url, json, timeout }).catch(
+      e => { 
+        throw new AppRequestException('BitstampExchange::getCoinPrice', e) 
+      }
     );
+    const price = parseFloat(response.last);
+    const priceWithFee = price * BitstampExchange.FEE + price;
 
-    return parseFloat(response.last);
+    return priceWithFee;
   }
 
-  async getOrder(id) {
+  async getOrderStatus(id) {
     const url = `${API_URL}/order_status/`;
     const json = true;
     const form = { ...this.generateAuth(), id };
-
-    return await this.request.post({ url, form, json });
+    const timeout = 10000;
+    return await this.request.post({ url, form, json, timeout }).catch(
+      e => { throw new AppRequestException('BitstampExchange::getOrderStatus', e) }
+    );
   }
 
   async isOrderOpen(id) {
-    const order = await this.getOrder(id);
+    const order = await this.getOrderStatus(id);
     return !order['finished'];
   }
 
@@ -74,7 +81,9 @@ export default class BitstampExchange extends ExchangeInterface {
     const json = true;
     const form = { ...this.generateAuth(), id };
 
-    return await this.request.post({ url, form, json });
+    return await this.request.post({ url, form, json }).catch(
+      e => { throw new AppRequestException('BitstampExchange::getBalance', e) }
+    );
   }
 
   generateAuth() {

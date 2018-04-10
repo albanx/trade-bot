@@ -29,7 +29,7 @@ export default class Dashboard {
       return process.exit(0);
     });
 
-    this.header = ["ID", "Coin", "Exchange", "Start Price", "Exchange Price", "Order Price", "% Diff"];
+    this.header = ["ID", "Coin", "Exchange", "Start Price", "Exchange Price", "Order Price", "Diff"];
     this.headerOrder = ["Coin", "Exchange", "Order Id", "Status", "Price", "Order"];
     this.headerPrediction = ["ID", "Coin", "Exchange", "Next Order", "Amount"];
     this.layoutScriptLog();
@@ -76,6 +76,11 @@ export default class Dashboard {
 
   log(...params) {
     this.logText.log(chalk.yellowBright(this.now(), ...params));
+  }
+
+  warning(...params) {
+    const warning = chalk.keyword('orange');
+    this.logText.log(warning(this.now(), 'Warning', ...params));
   }
 
   error(...params) {

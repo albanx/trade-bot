@@ -15,7 +15,7 @@ export default class DashboardViewer {
         c.getCoin(),
         c.getExchange(),
         c.getPriceStart().toString(),
-        c.getPriceExchange().toString(),
+        c.getPriceExchange().toFixed(4).toString(),
         c.getPriceOrder().toString(),
         c.getPriceChange().toFixed(2)
       ])

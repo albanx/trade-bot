@@ -1,6 +1,7 @@
 import BitstampExchange from '../../src/exchanges/BitstampExchange';
 import request from '../__mocks__/request';
 import coinExchangeModel from '../__mocks__/coinExchangeModel';
+import OrderService from '../../src/services/OrderService';
 
 describe('BitstampProvider', () => {
 
@@ -14,9 +15,17 @@ describe('BitstampProvider', () => {
     expect(BitstampExchange.NAME).toBe('bitstamp');
   });
 
-  it('sellCoin', async () => {
+  test('FEE', () => {
+    expect(BitstampExchange.FEE).toBe(0.0025);
+  });
+
+  test('getBasePair', () => {
+    expect(instance.getBasePair('LTC', 'eur')).toBe('ltceur');
+  });
+
+  it('makeOrder sell', async () => {
     expect.assertions(5);
-    const data = await instance.sellCoin(coinExchangeModel);
+    const data = await instance.makeOrder(coinExchangeModel, OrderService.ORDER_SELL);
     expect(data.orderId).toBeDefined();
     expect(data.type).toBe('sell');
     expect(data.success).toBe(true);
@@ -24,9 +33,9 @@ describe('BitstampProvider', () => {
     expect(data.amount).toBe(2);
   });
 
-  it('buyCoin', async () => {
+  it('makeOrder buy', async () => {
     expect.assertions(5);
-    const data = await instance.buyCoin(coinExchangeModel);
+    const data = await instance.makeOrder(coinExchangeModel,  OrderService.ORDER_BUY);
     expect(data.orderId).toBeDefined();
     expect(data.type).toBe('buy');
     expect(data.success).toBe(true);
@@ -34,4 +43,27 @@ describe('BitstampProvider', () => {
     expect(data.amount).toBe(2);
   });
 
+  it('makeOrder null', async () => {
+    expect.assertions(1);
+    const data = await instance.makeOrder(coinExchangeModel, 'not an order type');
+    expect(data).toBeUndefined();
+  });
+
+  it('getCoinPrice', async () => {
+    expect.assertions(1);
+    const data = await instance.getCoinPrice('ltc', 'eur');
+    expect(typeof data).toBe('number');
+  });
+
+  it('getOrder', async () => {
+    expect.assertions(1);
+    const data = await instance.getOrderStatus('5ab');
+    expect(data.status).toBe('finished');
+  });
+
+  it('isOrderOpen', async () => {
+    expect.assertions(1);
+    const data = await instance.isOrderOpen('5ab');
+    expect(data).toBeTruthy();
+  });
 });

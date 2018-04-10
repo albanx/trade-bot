@@ -1,6 +1,7 @@
 import createExchange from "../factories/ExchangeFactory";
 import OrderService from "./OrderService";
 import EVENTS from "../Events";
+import { AppRequestException } from "../Exceptions";
 
 export default class TradeMonitorService {
   constructor(coinExchangeService, orderService, emitter, coinsToTradeDefault = []) {
@@ -26,10 +27,16 @@ export default class TradeMonitorService {
 
   async loadCoins() {
     this.emit(EVENTS.MONITOR_LOAD_COINS);
-    this.coinsToTrade = await this.coinExchangeService.getCoinsToTrade();
-    if (this.coinsToTrade.length === 0) {
-      this.coinsToTrade = [...this.coinsToTradeDefault];
-    }
+    const storedCoins = await this.coinExchangeService.getCoinsToTrade();
+    const newCoins = this.coinsToTradeDefault.filter(item => !storedCoins.find(item2 => 
+          ( item.getCoin() === item2.getCoin() &&
+          item.getExchange() === item2.getExchange() &&
+          item.getBaseCoin() === item2.getBaseCoin() && 
+          item.getStrategy().name === item2.getStrategy().name )
+        )
+    );
+
+    this.coinsToTrade = storedCoins.concat(newCoins);
   }
 
   async initializeCoins() {
@@ -62,7 +69,9 @@ export default class TradeMonitorService {
 
   async startMonitor() {
     this.emit(EVENTS.MONITOR_CYCLE, this.coinsToTrade);
-    await Promise.all(this.coinsToTrade.map(c => this.checkCoin(c)));
+    await Promise.all(this.coinsToTrade.map(c => this.checkCoin(c))).catch( e => {
+      appWarning(e.message);
+    });
     setTimeout(() => this.startMonitor(), this.refreshInterval);
   }
 

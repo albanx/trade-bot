@@ -5,15 +5,31 @@ request.post = request.get = (options) => new Promise((resolve, reject) => {
   let file = '';
 
   if (options.url.indexOf(env.BITSTAMP_API_URL + '/sell') > -1 ) {
-    file = './tests/__mocks__/bitstamp-sell-response.json';
+    return resolve({
+      "id": 1,
+      "datetime": "2018-03-28 11:00:01",
+      "type": 0,
+      "price": 123,
+      "amount": 2
+    })
   }
 
   if (options.url.indexOf(env.BITSTAMP_API_URL + '/buy') > -1 ) {
-    file = './tests/__mocks__/bitstamp-buy-response.json';
+    return resolve({
+      "id": 1,
+      "datetime": "2018-03-28 11:00:01",
+      "type": 1,
+      "price": 123,
+      "amount": 2
+    })
   }
 
   if (options.url.indexOf(env.BITSTAMP_API_URL + '/ticker') > -1 ) {
     file = './tests/__mocks__/bitstamp-ticker.json';
+  }
+
+  if (options.url.indexOf(env.BITSTAMP_API_URL + '/order_status') > -1 ) {
+    file = './tests/__mocks__/bitstamp-order_status.json';
   }
 
   fs.readFile(file, 'utf8', (err, data) => {
