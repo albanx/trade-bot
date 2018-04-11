@@ -1,23 +1,27 @@
 import ExchangeInterface from './ExchangeInterface';
 import env from '../../env';
+import OrderService from '../services/OrderService';
 
-const API_URL = 'https://bittrex.com/api/v1.1';
+const API_URL = env.BITTREX_API_URL;
+const API_KEY = env.BITTREX_API_KEY;
 
 export default class BittrexExchange extends ExchangeInterface {
-  constructor(request, baseCoin, tradeQuantity) {
+  constructor(request) {
     super();
     this.request = request;
-    this.baseCoin = baseCoin;
-    this.quantity = tradeQuantity;
   }
 
   static get NAME() {
     return 'bittrex';
   }
 
+  getBasePair(coin, baseCoin) {
+    return `${baseCoin}-${coin}`.toLowerCase();
+  }
+
   async getMarket(coinPair) {
     return await this.request.get({
-      url: `${API_URL}/public/getmarketsummary`,
+      url: `${API_URL}/public/getticker`,
       qs: {
         market: coinPair
       },
@@ -25,39 +29,38 @@ export default class BittrexExchange extends ExchangeInterface {
     });
   }
 
-  async getCoinPrice(coin) {
-    const market = await this.getMarket(this.getBasePair(coin));
-    return parseFloat(market.result[0].Last);
+  async getCoinPrice(coin, baseCoin) {
+    const market = this.getBasePair(coin, baseCoin);
+    const url = `${API_URL}/public/getticker`;
+    const qs = {  market };
+    const json = true;
+    const timeout = 10000;
+    const response = await this.request.get({ url, qs, json, timeout }).catch(
+      e => { 
+        throw new AppRequestException('BittrexExchange::getCoinPrice', e) 
+      }
+    );
+    return parseFloat(response.result.Last);
   }
 
-  async sellCoin(coin, rate) {
-    const market = this.getBasePair(coin);
-    const response = await this.request.get({
-      url: `${API_URL}/market/selllimit?apikey=${env.API_KEY_BITTREX}`,
-      qs: {
-        market,
-        quantity: this.quantity,
-        rate
-      },
-      json: true
-    });
+  async makeOrder(coinExchangeModel, orderType) {
+    if (OrderService.isValidOrderType(orderType)) {
+      const endPoint = orderType === OrderService.ORDER_SELL ? 'selllimit' : 'buylimit';
+      const coin = coinExchangeModel.getCoin();
+      const baseCoin = coinExchangeModel.getBaseCoin();
 
-    return this.getResponse(response);
-  }
-
-  async buyCoin(coin, rate) {
-    const market = this.getBasePair(coin);
-    const response = await this.request.get({
-      url: `${API_URL}/market/buylimit?apikey=${env.API_KEY_BITTREX}`,
-      qs: {
-        market,
-        quantity: this.quantity,
-        rate
-      },
-      json: true
-    });
-
-    return this.getResponse(response);
+      const quantity = coinExchangeModel.getAmount();
+      const rate = coinExchangeModel.getPriceExchange();
+      const market = this.getBasePair(coin, baseCoin);
+      const url = `${API_URL}/market/${endPoint}?apikey=${env.API_KEY_BITTREX}`;
+      const json = true;
+      const qs = { market, quantity, rate };
+      const timeout = 10000;
+      const response = await this.request.get({ url, qs, json, timeout }).catch(
+        e => { throw new AppRequestException('BittrexExchange::makeOrder', e) }
+      );
+      return this.getResponse(response);
+    }
   }
 
   async getOrder(id) {
