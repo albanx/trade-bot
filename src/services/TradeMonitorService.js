@@ -50,10 +50,7 @@ export default class TradeMonitorService {
 
   async initializeCoins() {
     this.emit(EVENTS.MONITOR_INIT_COINS);
-    for (let i = 0; i < this.coinsToTrade.length; i++) {
-      const coin = this.coinsToTrade[i];
-      await this.initializeCoinPrice(coin);
-    }
+    return Promise.all(this.coinsToTrade.map(item => this.initializeCoinPrice(item)));
   }
 
   async initializeCoinPrice(coin) {
@@ -121,7 +118,7 @@ export default class TradeMonitorService {
   async makeSimulatedOrder(coinExchangeModel, orderType) {
     return Promise.resolve({
       success: true,
-      orderId: `simulated_${Math.random(1, 9999)}`,
+      orderId: `${Math.random().toString(36).substr(2, 5)}_simulated`,
       type: orderType,
       price: coinExchangeModel.getPriceExchange(),
       amount: coinExchangeModel.getAmount(),

@@ -1,3 +1,5 @@
+import SimpleStrategy from "./strategies/SimpleStrategy";
+
 export default class DashboardViewer {
   constructor(dashboard, orderService) {
     this.dashboard = dashboard;
@@ -7,19 +9,18 @@ export default class DashboardViewer {
   showCoins(coins) {
     this.dashboard.setPriceMonitorLabel(`Price Monitor - ${new Date()}`);
     this.dashboard.addPriceMonitorRows(
-      coins.map(c => [
-        c
-          .getId()
-          .toString()
-          .substring(0, 4),
-        c.getCoin(),
-        c.getExchange(),
+      coins.map(c => {
+        const diffType = c.getStrategy().name === SimpleStrategy.NAME ? '%' : '€';
+        return [
+        c.getId().toString().substring(0, 4),
+        `${c.getCoin()}@${c.getExchange()}`,
         c.getPriceStart().toString(),
         c.getPriceExchange().toFixed(4).toString(),
         c.getPriceOrder().toString(),
-        c.getPriceChange().toFixed(2),
+        c.getPriceChange().toFixed(2) + ' ' + diffType,
         c.getTradeMode()
-      ])
+      ]
+    })
     );
   }
 
@@ -30,7 +31,7 @@ export default class DashboardViewer {
         o.getExchange(),
         o.getExchangeOrderId(),
         o.getStatus(),
-        o.getPriceOrder(),
+        o.getPriceOrder().toString(),
         o.getOrderType()
       ])
     );

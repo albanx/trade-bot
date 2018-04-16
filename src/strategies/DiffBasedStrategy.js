@@ -12,6 +12,7 @@ export default class DiffBasedStrategy extends AbstractStrategy {
     return 'difference';
   }
 
+  
   //privates
   getPriceNextOrder(coinExchangeModel, nextOrderType) {
     const priceOrder = coinExchangeModel.getPriceOrder();
