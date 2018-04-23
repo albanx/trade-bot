@@ -29,17 +29,18 @@ export default class OrderService {
     return null;
   }
 
-  async getOrderType(coinExchangeModel, preview = false) {
+  getStrategy(coinExchangeModel) {
     const configStrategy = coinExchangeModel.getStrategy();
-    const strategy = createStrategy(configStrategy.name, configStrategy.params);
+    return createStrategy(configStrategy.name, configStrategy.params);
+  }
+  
+  async getOrderType(coinExchangeModel, preview = false) {
     const lastOrder = await this.getLastOrder(coinExchangeModel.getId());
-    return strategy.getNextOrderType(coinExchangeModel, lastOrder, preview);
+    return this.getStrategy(coinExchangeModel).getNextOrderType(coinExchangeModel, lastOrder, preview);
   }
 
   getPreviewPriceNextOrder(coinExchangeModel, nextOrderType) {
-    const configStrategy = coinExchangeModel.getStrategy();
-    const strategy = createStrategy(configStrategy.name, configStrategy.params);
-    return strategy.getPriceNextOrder(coinExchangeModel, nextOrderType);
+    return this.getStrategy(coinExchangeModel).getPriceNextOrder(coinExchangeModel, nextOrderType);
   }
 
   async getOrders() {
@@ -49,10 +50,10 @@ export default class OrderService {
 
   async saveOrder(coinExchangeModel, exchangeOrderId, orderType) {
     const coinExchangeId = coinExchangeModel.getId();
-    const coin = coinExchangeModel.getCoin();
-    const exchange = coinExchangeModel.getExchange();
-    const baseCoin = coinExchangeModel.getBaseCoin();
-    const priceOrder = coinExchangeModel.getPriceOrder();
+    const coin = coinExchangeModel.coin;
+    const exchange = coinExchangeModel.exchange;
+    const baseCoin = coinExchangeModel.baseCoin;
+    const priceOrder = coinExchangeModel.priceOrder;
     const status = 'open';
 
     const order = createOrder({

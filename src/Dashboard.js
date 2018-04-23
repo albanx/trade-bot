@@ -29,7 +29,7 @@ export default class Dashboard {
       return process.exit(0);
     });
 
-    this.header = ["ID", "Coin", "Start Price", "Exchange Price", "Order Price", "Diff", "Mode"];
+    this.header = ["ID", "Coin", "Start Price", "Exchange Price", "Order Price", "Diff", "%", "Mode"];
     this.headerOrder = ["Coin", "Exchange", "Order Id", "Status", "Price", "Order"];
     this.headerPrediction = ["ID", "Coin", "Exchange", "Next Order", "Amount"];
     this.layoutScriptLog();

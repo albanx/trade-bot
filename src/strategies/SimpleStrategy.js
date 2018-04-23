@@ -28,16 +28,8 @@ export default class SimpleStrategy extends AbstractStrategy {
     return null;
   }
 
-  updatePriceChanges(coinExchangeModel) {
-    const priceExchange = coinExchangeModel.getPriceExchange();
-    const priceOrder = coinExchangeModel.getPriceOrder();
-    const percent =
-      (priceExchange - priceOrder) * 100 / Math.max(priceOrder, priceExchange);
-    coinExchangeModel.setPriceChange(percent);
-  }
-
   isOrderPossible(coinExchangeModel, nextOrderType) {
-    const diff = coinExchangeModel.getPriceChange();
+    const diff = coinExchangeModel.priceExchange.percent;
     if (nextOrderType === OrderService.ORDER_SELL && diff >= this.highThreshold) {
       return true;
     }

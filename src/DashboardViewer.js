@@ -10,15 +10,15 @@ export default class DashboardViewer {
     this.dashboard.setPriceMonitorLabel(`Price Monitor - ${new Date()}`);
     this.dashboard.addPriceMonitorRows(
       coins.map(c => {
-        const diffType = c.getStrategy().name === SimpleStrategy.NAME ? '%' : '€';
         return [
         c.getId().toString().substring(0, 4),
-        `${c.getCoin()}@${c.getExchange()}`,
-        c.getPriceStart().toString(),
-        c.getPriceExchange().toFixed(4).toString(),
-        c.getPriceOrder().toString(),
-        c.getPriceChange().toFixed(2) + ' ' + diffType,
-        c.getTradeMode()
+        `${c.coin}@${c.exchange}`,
+        c.priceStart.toString(),
+        c.priceExchange.toFixed(4).toString(),
+        c.priceOrder.toString(),
+        c.priceChange.diff.toFixed(4) + ' €',
+        c.priceChange.percent.toFixed(4) + ' %',
+        c.tradeMode
       ]
     })
     );
@@ -50,10 +50,10 @@ export default class DashboardViewer {
               .getId()
               .toString()
               .substring(0, 4),
-            c.getCoin(),
-            c.getExchange(),
+            c.coin,
+            c.exchange,
             nextText,
-            c.getAmount()
+            c.amount
           ];
         })
       )

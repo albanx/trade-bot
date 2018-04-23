@@ -11,7 +11,6 @@ export default class CoinExchangeService {
   }
 
   async saveCoinExchange(coinExchangeModel) {
-    coinExchangeModel.setLastUpdate(new Date());
     return await this.store.saveModel(coinExchangeModel);
   }
 }
