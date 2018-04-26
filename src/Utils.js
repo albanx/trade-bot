@@ -5,3 +5,9 @@ export const log = (msg, fn) => {
     console.log(msg);
   }
 }
+
+export const initFloat = (num, defValue = 0) => {
+  if (isNaN(num)) num = defValue;
+
+  return parseFloat(num);
+}

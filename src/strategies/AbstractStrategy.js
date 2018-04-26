@@ -38,10 +38,8 @@ export default class AbstractStrategy {
     return null;
   }
 
-
-
   getOrderTypeBasedOnPrice(coinExchangeModel) {
-    const change = coinExchangeModel.getPriceChange();
+    const change = coinExchangeModel.priceChange.diff;
     return change > 0 ? OrderService.ORDER_SELL : OrderService.ORDER_BUY;
   }
 }

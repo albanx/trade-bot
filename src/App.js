@@ -42,9 +42,25 @@ const ltcBitstampDiff = createCoinExchange({
   }
 });
 
-const tradeCoins = [ltcBitstamp, ltcBitstampDiff];
+const btcBitstampDiff = createCoinExchange({
+  coin: 'BTC',
+  exchange: BitstampExchange.NAME,
+  baseCoin: 'EUR',
+  amount: 0.06551237,//TODO avaiable
+  priceOrder: 7693,
+  tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
+  strategy: { 
+    name: DiffBasedStrategy.NAME, 
+    params: {
+      baseCoinDiff: 100
+    }
+  }
+});
+
+
+const tradeCoins = [ltcBitstamp, ltcBitstampDiff, btcBitstampDiff];
 const dashboard = new Dashboard({});
-global.appLog = (msg) => {
+global.appLog = (...msg) => {
   dashboard.log(msg);
 };
 

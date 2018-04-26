@@ -54,6 +54,8 @@ export default class OrderService {
     const exchange = coinExchangeModel.exchange;
     const baseCoin = coinExchangeModel.baseCoin;
     const priceOrder = coinExchangeModel.priceOrder;
+    const amount = coinExchangeModel.amount;
+    const value = priceOrder * amount;
     const status = 'open';
 
     const order = createOrder({
@@ -63,6 +65,8 @@ export default class OrderService {
       baseCoin,
       exchange,
       priceOrder,
+      amount,
+      value,
       orderType,
       status
     });

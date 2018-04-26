@@ -14,9 +14,9 @@ export default class DashboardViewer {
         c.getId().toString().substring(0, 4),
         `${c.coin}@${c.exchange}`,
         c.priceStart.toString(),
-        c.priceExchange.toFixed(4).toString(),
-        c.priceOrder.toString(),
-        c.priceChange.diff.toFixed(4) + ' €',
+       `${c.priceExchange.toFixed(4)} / ${c.priceExchange.toFixed(4) * c.amount}`,
+        `${c.priceOrder.toFixed(4)} / ${c.priceOrder.toFixed(4) * c.amount}`,
+        `${c.priceChange.diff.toFixed(4)} / ${(c.priceChange.diff * c.amount).toFixed(4)} €`,
         c.priceChange.percent.toFixed(4) + ' %',
         c.tradeMode
       ]
@@ -27,12 +27,12 @@ export default class DashboardViewer {
   showCurrentOrders(orders) {
     this.dashboard.addRowOrders(
       orders.map(o => [
-        o.getCoin(),
-        o.getExchange(),
-        o.getExchangeOrderId(),
-        o.getStatus(),
-        o.getPriceOrder().toString(),
-        o.getOrderType()
+        o.coin,
+        o.exchange,
+        o.exchangeOrderId,
+        o.status,
+        o.priceOrder.toString(),
+        o.orderType
       ])
     );
   }
@@ -53,7 +53,7 @@ export default class DashboardViewer {
             c.coin,
             c.exchange,
             nextText,
-            c.amount
+            c.amount.toString()
           ];
         })
       )

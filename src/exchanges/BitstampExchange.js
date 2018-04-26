@@ -30,9 +30,9 @@ export default class BitstampExchange extends ExchangeInterface {
   async makeOrder(coinExchangeModel, orderType) {
     if (OrderService.isValidOrderType(orderType)) {
       const endPoint = orderType === OrderService.ORDER_SELL ? 'sell' : 'buy';
-      const coin = coinExchangeModel.getCoin();
-      const baseCoin = coinExchangeModel.getBaseCoin();
-      const amount = coinExchangeModel.getAmount();
+      const coin = coinExchangeModel.coin;
+      const baseCoin = coinExchangeModel.baseCoin
+      const amount = coinExchangeModel.amount;
       const pair = this.getBasePair(coin, baseCoin);
       const url = `${API_URL}/${endPoint}/market/${pair}/`;
       const json = true;

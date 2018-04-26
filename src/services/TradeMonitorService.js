@@ -38,7 +38,6 @@ export default class TradeMonitorService {
   }
 
   async loadCoins() {
-    this.emit(EVENTS.MONITOR_LOAD_COINS);
     const storedCoins = await this.coinExchangeService.getCoinsToTrade();
     const newCoins = this.coinsToTradeDefault.filter(item => !storedCoins.find(item2 => 
           ( item.coin === item2.coin &&
@@ -50,13 +49,35 @@ export default class TradeMonitorService {
     );
 
     this.coinsToTrade = storedCoins.concat(newCoins);
+    this.coinsToTrade.map(coin => this.initCoin(coin, 0));
+    this.emit(EVENTS.MONITOR_LOAD_COINS);
+  }
+
+  async startMonitor() {
+    await Promise.all(this.coinsToTrade.map(c => this.checkCoin(c))).catch( e => {
+      appWarning(e.message, e);
+    });
+    this.emit(EVENTS.MONITOR_CYCLE, this.coinsToTrade);
+    setTimeout(() => this.startMonitor(), this.refreshInterval);
+  }
+
+  async checkCoin(coinExchangeModel) {
+    await this.updateCoinPrice(coinExchangeModel);
+    const orderType = await this.orderService.getOrderType(coinExchangeModel);
+    
+    if (orderType && coinExchangeModel.getTradeMode() !== TradeMonitorService.TRADE_MODE_MONITOR) {
+      await this.startOrder(coinExchangeModel, orderType);
+    }
+    
+    await this.coinExchangeService.saveCoinExchange(coinExchangeModel);
+    this.emit(EVENTS.MONITOR_CHECK_COIN, coinExchangeModel);
   }
 
   initCoin(coin, priceExchange) {
     if (!coin.tradeMode) coin.tradeMode = TradeMonitorService.TRADE_MODE_SIMULATION;
     if (!coin.priceOrder) coin.priceOrder = priceExchange;
     if (!coin.priceStart) coin.priceStart = priceExchange;
-    if (!coin.amount) coin.amount = 1;
+    if (!coin.amount) coin.amount = 1.0;
   }
 
   async updateCoinPrice(coinExchangeModel) {
@@ -79,26 +100,6 @@ export default class TradeMonitorService {
     );
 
     return priceExchange;
-  }
-
-  async startMonitor() {
-    this.emit(EVENTS.MONITOR_CYCLE, this.coinsToTrade);
-    await Promise.all(this.coinsToTrade.map(c => this.checkCoin(c))).catch( e => {
-      appWarning(e.message, e);
-    });
-    setTimeout(() => this.startMonitor(), this.refreshInterval);
-  }
-
-  async checkCoin(coinExchangeModel) {
-    this.emit(EVENTS.MONITOR_CHECK_COIN, coinExchangeModel);
-    await this.updateCoinPrice(coinExchangeModel);
-    const orderType = await this.orderService.getOrderType(coinExchangeModel);
-    
-    if (orderType && coinExchangeModel.getTradeMode() !== TradeMonitorService.TRADE_MODE_MONITOR) {
-      await this.startOrder(coinExchangeModel, orderType);
-    }
-    
-    await this.coinExchangeService.saveCoinExchange(coinExchangeModel);
   }
 
   async startOrder(coinExchangeModel, orderType) {

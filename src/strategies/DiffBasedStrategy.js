@@ -13,7 +13,7 @@ export default class DiffBasedStrategy extends AbstractStrategy {
   }
 
   getPriceNextOrder(coinExchangeModel, nextOrderType) {
-    const priceOrder = coinExchangeModel.getPriceOrder();
+    const priceOrder = coinExchangeModel.priceOrder * coinExchangeModel.amount;
     if (nextOrderType === OrderService.ORDER_SELL) {
       return priceOrder + this.baseCoinDiff;
     }
@@ -27,7 +27,7 @@ export default class DiffBasedStrategy extends AbstractStrategy {
 
   //privates
   isOrderPossible(coinExchangeModel, nextOrderType) {
-    const diff = coinExchangeModel.priceChange.diff;
+    const diff = coinExchangeModel.priceChange.diff * coinExchangeModel.amount;
     if (nextOrderType === OrderService.ORDER_SELL && diff >= this.baseCoinDiff) {
       return true;
     }
