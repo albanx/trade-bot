@@ -13,6 +13,7 @@ import EVENTS from './Events';
 import DashboardViewer from './DashboardViewer';
 import SimpleStrategy from './strategies/SimpleStrategy';
 import DiffBasedStrategy from './strategies/DiffBasedStrategy';
+import PeakDetectorStrategy from './strategies/PeakDetectorStrategy';
 
 const ltcBitstamp = createCoinExchange({
   coin: 'LTC',
@@ -21,7 +22,7 @@ const ltcBitstamp = createCoinExchange({
   amount: 1,
   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
   strategy: { 
-    name: SimpleStrategy.NAME, 
+    name: SimpleStrategy.NAME,
     params: {
       lowThreshold: -15, highThreshold: 20, frequency: 60
     }
@@ -57,8 +58,21 @@ const btcBitstampDiff = createCoinExchange({
   }
 });
 
-
-const tradeCoins = [ltcBitstamp, ltcBitstampDiff, btcBitstampDiff];
+const btcBitstampPeak = createCoinExchange({
+  coin: 'BTC',
+  exchange: BitstampExchange.NAME,
+  baseCoin: 'EUR',
+  amount: 0.06551237,//TODO avaiable
+  priceOrder: 7693,
+  tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
+  strategy: {
+    name: PeakDetectorStrategy.NAME, 
+    params: {
+      threshold: 5, prices: [], maxLimit: 30   
+    }
+  }
+});
+const tradeCoins = [ltcBitstamp, ltcBitstampDiff, btcBitstampDiff, btcBitstampPeak];
 const dashboard = new Dashboard({});
 global.appLog = (...msg) => {
   dashboard.log(msg);
@@ -95,7 +109,6 @@ const startTradingBot = async () => {
   mediator.on(EVENTS.MONITOR_CYCLE, async coins => {
     const orders = await orderService.getOrders();
     dashboardViewer.showCoins(coins);
-    dashboardViewer.showNextOrders(coins);
     dashboardViewer.showCurrentOrders(orders);
   });
   mediator.on('MONITOR_MAKE_ORDER', (coinExchangeModel, orderType) =>

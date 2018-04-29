@@ -6,7 +6,7 @@ const coinExchangeModel = createCoinExchange({
   exchange: 'bitstamp',
   baseCoin: 'eur',
   amount: 1,
-  priceExchange: 100,
+  priceExchange: 120,
   priceOrder: 120,
   priceStart: 125,
   priceChange: 2,

@@ -8,8 +8,8 @@ request.post = request.get = (options) => new Promise((resolve, reject) => {
     return resolve({
       "id": Math.random(),
       "datetime": "2018-03-28 11:00:01",
-      "type": 0,
-      "price": 123,
+      "type": 1,
+      "price": 111,
       "amount": 2
     })
   }
@@ -18,7 +18,7 @@ request.post = request.get = (options) => new Promise((resolve, reject) => {
     return resolve({
       "id": Math.random(),
       "datetime": "2018-03-28 11:00:01",
-      "type": 1,
+      "type": 0,
       "price": 123,
       "amount": 2
     })

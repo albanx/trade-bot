@@ -2,10 +2,9 @@ import OrderService from '../services/OrderService';
 import AbstractStrategy from './AbstractStrategy';
 
 export default class DiffBasedStrategy extends AbstractStrategy {
-  constructor({ baseCoinDiff, orders }) {
+  constructor({ baseCoinDiff }) {
     super();
-    this.baseCoinDiff = baseCoinDiff;
-    this.orders = orders;
+    Object.assign(this, { baseCoinDiff });
   }
 
   static get NAME() {

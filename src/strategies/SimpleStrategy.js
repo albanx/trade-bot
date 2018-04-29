@@ -2,12 +2,9 @@ import OrderService from '../services/OrderService';
 import AbstractStrategy from './AbstractStrategy';
 
 export default class SimpleStrategy extends AbstractStrategy {
-  constructor({ lowThreshold, highThreshold, frequency, orders }) {
+  constructor({ lowThreshold, highThreshold, frequency }) {
     super();
-    this.lowThreshold = lowThreshold;
-    this.highThreshold = highThreshold;
-    this.frequency = frequency;
-    this.orders = orders;
+    Object.assign(this, { lowThreshold, highThreshold, frequency });
   }
 
   static get NAME() {
@@ -16,7 +13,7 @@ export default class SimpleStrategy extends AbstractStrategy {
 
   //privates
   getPriceNextOrder(coinExchangeModel, nextOrderType) {
-    const priceOrder = coinExchangeModel.getPriceOrder();
+    const priceOrder = coinExchangeModel.priceOrder;
     if (nextOrderType === OrderService.ORDER_SELL) {
       return priceOrder + priceOrder * this.highThreshold / 100;
     }

@@ -6,6 +6,7 @@ export default class OrderService {
 
   constructor(collection) {
     this.store = collection;
+    this._cache
   }
 
   static get ORDER_SELL() {
@@ -29,18 +30,17 @@ export default class OrderService {
     return null;
   }
 
-  getStrategy(coinExchangeModel) {
-    const configStrategy = coinExchangeModel.getStrategy();
-    return createStrategy(configStrategy.name, configStrategy.params);
+  getStrategy(strategy) {
+    return createStrategy(strategy.name, strategy.params);
   }
   
   async getOrderType(coinExchangeModel, preview = false) {
     const lastOrder = await this.getLastOrder(coinExchangeModel.getId());
-    return this.getStrategy(coinExchangeModel).getNextOrderType(coinExchangeModel, lastOrder, preview);
+    return this.getStrategy(coinExchangeModel.strategy).getNextOrderType(coinExchangeModel, lastOrder, preview);
   }
 
   getPreviewPriceNextOrder(coinExchangeModel, nextOrderType) {
-    return this.getStrategy(coinExchangeModel).getPriceNextOrder(coinExchangeModel, nextOrderType);
+    return this.getStrategy(coinExchangeModel.strategy).getPriceNextOrder(coinExchangeModel, nextOrderType);
   }
 
   async getOrders() {
@@ -57,7 +57,7 @@ export default class OrderService {
     const amount = coinExchangeModel.amount;
     const value = priceOrder * amount;
     const status = 'open';
-
+    const dateCreated = new Date();
     const order = createOrder({
       coinExchangeId,
       exchangeOrderId,
@@ -68,7 +68,8 @@ export default class OrderService {
       amount,
       value,
       orderType,
-      status
+      status,
+      dateCreated
     });
 
     await this.store.saveModel(order);

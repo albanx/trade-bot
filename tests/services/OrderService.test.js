@@ -25,11 +25,6 @@ describe('CoinExchangeService', () => {
     expect(OrderService.isValidOrderType('asdasd')).toEqual(false);
   });
 
-  test('getNextOrderTypeBasedOnLastOrder', () => {
-    expect.assertions(1);
-    instance.getNextOrderTypeBasedOnLastOrder()
-  });
-
   ///getNextOrderTypeBasedOnLastOrder
   // test('getCoinsToTrade', async () => {
   //   expect.assertions(1);

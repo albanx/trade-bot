@@ -19,10 +19,6 @@ export default class AbstractStrategy {
     return null;
   }
 
-  getPriceNextOrder() {
-
-  }
-
   getOrderTypeBasedOnLastOrder(lastOrder) {
     if (lastOrder) {
       const orderType = lastOrder.getOrderType();

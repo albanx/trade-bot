@@ -2,18 +2,9 @@ import AbstractModel from "./AbstractModel";
 
 export default class OrderModel extends AbstractModel {
 
-  constructor({id, coinExchangeId, exchangeOrderId, coin, baseCoin, exchange, priceOrder, orderType, status, dateCreated}) {
+  constructor(params) {
     super();
-    this._id = id;
-    this.coinExchangeId = coinExchangeId;
-    this.exchangeOrderId = exchangeOrderId;
-    this.exchange = exchange;
-    this.coin = coin;
-    this.baseCoin = baseCoin;
-    this.priceOrder = priceOrder;
-    this.orderType = orderType;
-    this.status = status;
-    this.dateCreated = dateCreated;
+    Object.assign(this, params);
   }
 
   getId() {
