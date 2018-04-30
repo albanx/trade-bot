@@ -35,7 +35,7 @@ export default class OrderService {
   }
   
   async getOrderType(coinExchangeModel, preview = false) {
-    const lastOrder = await this.getLastOrder(coinExchangeModel.getId());
+    const lastOrder = await this.getLastOrder(coinExchangeModel.getId());//TODO replace with coinExchangeModel.lastOrderType
     return this.getStrategy(coinExchangeModel.strategy).getNextOrderType(coinExchangeModel, lastOrder, preview);
   }
 

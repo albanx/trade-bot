@@ -65,6 +65,7 @@ const btcBitstampPeak = createCoinExchange({
   amount: 0.06551237,//TODO avaiable
   priceOrder: 7693,
   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
+  lastOrderType: OrderService.ORDER_SELL,
   strategy: {
     name: PeakDetectorStrategy.NAME, 
     params: {

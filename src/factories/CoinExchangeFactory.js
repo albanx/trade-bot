@@ -1,7 +1,21 @@
 import CoinExchangeModel from "../models/CoinExchangeModel";
 import {initFloat} from '../Utils';
 
-const createCoinExchange = ({_id, coin, exchange, baseCoin, amount, priceExchange, priceOrder, priceStart, priceChange, lastUpdate, strategy, tradeMode}) =>
+const createCoinExchange = ({
+  _id, 
+  coin, 
+  exchange, 
+  baseCoin, 
+  amount, 
+  priceExchange, 
+  priceOrder, 
+  priceStart, 
+  priceChange, 
+  lastOrderType, 
+  lastUpdate, 
+  strategy, 
+  tradeMode
+}) =>
   new CoinExchangeModel(
     {
       _id,
@@ -13,6 +27,7 @@ const createCoinExchange = ({_id, coin, exchange, baseCoin, amount, priceExchang
       priceOrder: initFloat(priceOrder),
       priceStart: initFloat(priceStart),
       priceChange: {diff: 0, percent: 0},
+      lastOrderType,
       lastUpdate,
       strategy,
       tradeMode

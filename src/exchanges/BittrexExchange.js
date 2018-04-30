@@ -46,11 +46,11 @@ export default class BittrexExchange extends ExchangeInterface {
   async makeOrder(coinExchangeModel, orderType) {
     if (OrderService.isValidOrderType(orderType)) {
       const endPoint = orderType === OrderService.ORDER_SELL ? 'selllimit' : 'buylimit';
-      const coin = coinExchangeModel.getCoin();
-      const baseCoin = coinExchangeModel.getBaseCoin();
+      const coin = coinExchangeModel.coin;
+      const baseCoin = coinExchangeModel.baseCoin;
 
-      const quantity = coinExchangeModel.getAmount();
-      const rate = coinExchangeModel.getPriceExchange();
+      const quantity = coinExchangeModel.amount;
+      const rate = coinExchangeModel.priceExchange;
       const market = this.getBasePair(coin, baseCoin);
       const url = `${API_URL}/market/${endPoint}?apikey=${env.API_KEY_BITTREX}`;
       const json = true;

@@ -65,7 +65,7 @@ export default class TradeMonitorService {
     await this.updateCoinPrice(coinExchangeModel);
     const orderType = await this.orderService.getOrderType(coinExchangeModel);
     
-    if (orderType && coinExchangeModel.getTradeMode() !== TradeMonitorService.TRADE_MODE_MONITOR) {
+    if (orderType && coinExchangeModel.tradeMode !== TradeMonitorService.TRADE_MODE_MONITOR) {
       await this.startOrder(coinExchangeModel, orderType);
     }
     
@@ -107,6 +107,7 @@ export default class TradeMonitorService {
     const response = await this.createExchangeOrder(coinExchangeModel, orderType);
     if (response.success) {
       coinExchangeModel.priceOrder = coinExchangeModel.priceExchange;
+      coinExchangeModel.lastOrderType = orderType;
       await this.orderService.saveOrder(coinExchangeModel, response.orderId, orderType);
       this.emit(EVENTS.MONITOR_ORDER_DONE, coinExchangeModel, orderType);
     } else {
