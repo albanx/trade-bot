@@ -29,6 +29,7 @@ export default class PeakDetectorStratety extends AbstractStrategy {
     const price = coinExchangeModel.priceExchange * coinExchangeModel.amount;
     const diff = coinExchangeModel.priceChange.diff * coinExchangeModel.amount;
     this.addPrice(price);
+    coinExchangeModel.strategy.params.prices = this.prices;//FIXME dirty trick 
 
     if (nextOrderType === OrderService.ORDER_SELL && this.isSellPossible(diff)) {
       return true;
@@ -49,18 +50,24 @@ export default class PeakDetectorStratety extends AbstractStrategy {
   }
 
   isSellPossible(diff) {
-    if (diff > this.threshold && !this.isIncrementing(this.maxLimit)) {
-      appLog('isSellPossible::OK', diff);
-      return true;
+    if (diff > this.threshold) {
+      appLog(`isSellPossible::over threshold ${diff} >  ${this.threshold}`);
+      if (!this.isIncrementing(this.maxLimit)) {
+        appLog('isSellPossible::OK::got maximum price ::', diff);
+        return true;
+      }
     }
     
     return false;
   }
 
   isBuyPossible(diff) {
-    if (diff < -this.threshold && this.isIncrementing(this.maxLimit)) {
-      appLog('isBuyPossible::OK', diff);
-      return true;
+    if (diff < -this.threshold) {
+      appLog(`isBuyPossible::over threshold ${diff} <  -${this.threshold}`);
+      if (this.isIncrementing(this.maxLimit)) {
+        appLog('isBuyPossible::OK::got minimum price ::', diff);
+        return true;
+      }
     }
 
     return false;
@@ -72,7 +79,12 @@ export default class PeakDetectorStratety extends AbstractStrategy {
       .map(item => item.diff)
       .reduce((acc, diff) => acc + diff);
 
-    appLog('isIncrementing::', variationLast);
+      if(variationLast >= 0) {
+        appLog('isIncrementing::', variationLast);
+      } else {
+        appLog('isDecrementing::', variationLast);
+      }
+      
     return variationLast >= 0;
   }
 

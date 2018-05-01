@@ -63,7 +63,7 @@ export default class TradeMonitorService {
 
   async checkCoin(coinExchangeModel) {
     await this.updateCoinPrice(coinExchangeModel);
-    const orderType = await this.orderService.getOrderType(coinExchangeModel);
+    const orderType = this.orderService.getOrderType(coinExchangeModel);
     
     if (orderType && coinExchangeModel.tradeMode !== TradeMonitorService.TRADE_MODE_MONITOR) {
       await this.startOrder(coinExchangeModel, orderType);

@@ -1,9 +1,9 @@
 import OrderService from '../services/OrderService';
 
 export default class AbstractStrategy {
-  getNextOrderType(coinExchangeModel, lastOrder, preview) {
+  getNextOrderType(coinExchangeModel, preview) {
     const nextOrderBasedOnMarketPrice = this.getOrderTypeBasedOnPrice(coinExchangeModel);
-    const nextOrderBasedOnLast = this.getOrderTypeBasedOnLastOrder(lastOrder);
+    const nextOrderBasedOnLast = this.getOrderTypeBasedOnLastOrder(coinExchangeModel.lastOrderType);
     let nextOrderType = null;
 
     if (nextOrderBasedOnLast) {
@@ -19,9 +19,8 @@ export default class AbstractStrategy {
     return null;
   }
 
-  getOrderTypeBasedOnLastOrder(lastOrder) {
-    if (lastOrder) {
-      const orderType = lastOrder.getOrderType();
+  getOrderTypeBasedOnLastOrder(orderType) {
+    if (orderType) {
       if (orderType === OrderService.ORDER_BUY) {
         return OrderService.ORDER_SELL;
       }

@@ -29,8 +29,8 @@ export default class Dashboard {
       return process.exit(0);
     });
 
-    this.header = ["ID", "Coin", "Exchange Price / x amount", "Order Price / x amount", "Diff / x amount", "%", "Mode", "Next Order"];
-    this.headerOrder = ["Coin", "Exchange", "Order Id", "Status", "Price", "Order"];
+    this.header = ["ID", "Coin", "Exchange Price / x amount", "Order Price / x amount", "Diff / x amount", "%", "Mode", "Next Order", "Strategy"];
+    this.headerOrder = ["Coin", "Exchange", "Order Id", "Status", "Price", "Order", "Date Order"];
     this.layoutScriptLog();
     this.layoutPriceMonitor();
     this.layoutOrders();
@@ -51,14 +51,6 @@ export default class Dashboard {
       ...rows
     ]);
     this.orderTable.screen.render();
-  }
-
-  addRowNextAction(rows) {
-    this.predictionTable.setData([
-      this.headerPrediction,
-      ...rows
-    ]);
-    this.predictionTable.screen.render();
   }
 
   now() {
@@ -91,9 +83,9 @@ export default class Dashboard {
       mouse: true,
       tags: true,
       width: "60%",
-      height: "66%",
+      height: "50%",
       left: "0%",
-      top: "36%",
+      top: "50%",
       border: {
         type: "line"
       },
@@ -138,10 +130,10 @@ export default class Dashboard {
       label: "Orders Log",
       tags: true,
       padding: 1,
-      width: "40%",
-      height: "66%",
-      left: "60%",
-      top: "36%",
+      width: "50%",
+      height: "50%",
+      left: "50%",
+      top: "0%",
       border: {
         type: "line"
       },
@@ -170,8 +162,8 @@ export default class Dashboard {
     this.logBox = blessed.box({
       label: "Script log",
       padding: 1,
-      width: "60%",
-      height: "36%",
+      width: "50%",
+      height: "50%",
       left: "0%",
       top: "0%",
       border: {

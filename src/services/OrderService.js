@@ -21,22 +21,12 @@ export default class OrderService {
     return [OrderService.ORDER_SELL, OrderService.ORDER_BUY].indexOf(orderType) > -1;
   }
 
-  async getLastOrder(coinExchangeId) {
-    const order = await this.store.findLastOrder(coinExchangeId);
-    if (order) {
-      return createOrder(order);
-    }
-
-    return null;
-  }
-
   getStrategy(strategy) {
     return createStrategy(strategy.name, strategy.params);
   }
   
-  async getOrderType(coinExchangeModel, preview = false) {
-    const lastOrder = await this.getLastOrder(coinExchangeModel.getId());//TODO replace with coinExchangeModel.lastOrderType
-    return this.getStrategy(coinExchangeModel.strategy).getNextOrderType(coinExchangeModel, lastOrder, preview);
+  getOrderType(coinExchangeModel, preview = false) {
+    return this.getStrategy(coinExchangeModel.strategy).getNextOrderType(coinExchangeModel, preview);
   }
 
   getPreviewPriceNextOrder(coinExchangeModel, nextOrderType) {

@@ -68,7 +68,7 @@ const btcBitstampPeak = createCoinExchange({
   lastOrderType: OrderService.ORDER_SELL,
   strategy: {
     name: PeakDetectorStrategy.NAME, 
-    params: {
+    params: {//NOTE these are references will reflect in DB
       threshold: 5, prices: [], maxLimit: 30   
     }
   }
