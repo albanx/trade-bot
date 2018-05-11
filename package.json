@@ -14,9 +14,7 @@
   "prettier": {
     "singleQuote": true
   },
-  "jest": {
-
-  },
+  "jest": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/albanx/cbot.git"
@@ -47,6 +45,8 @@
     "gdax": "^0.4.2",
     "got": "^8.0.1",
     "mongodb": "^3.0.0-rc0",
+    "pusher-js": "^4.2.2",
+    "redux": "^4.0.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5"
   },

@@ -13,6 +13,7 @@ export default class BitstampExchange extends ExchangeInterface {
   constructor(request) {
     super();
     this.request = request;
+    // this.startWebSocket();
   }
 
   static get NAME() {
@@ -22,6 +23,8 @@ export default class BitstampExchange extends ExchangeInterface {
   static get FEE() {
     return 0.25/100;
   }
+
+
 
   getBasePair(coin, baseCoin) {
     return `${coin}${baseCoin}`.toLowerCase();

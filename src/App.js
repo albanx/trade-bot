@@ -1,8 +1,8 @@
 import config from '../config';
 import Store from './Store';
 import CoinExchangeService from './services/CoinExchangeService';
-import CoinExchangeRepository from './collections/CoinExchangeRepository';
-import OrderRepository from './collections/OrderRepository';
+import CoinExchangeRepository from './store/mongodb/CoinExchangeRepository';
+import OrderRepository from './store/mongodb/OrderRepository';
 import OrderService from './services/OrderService';
 import Dashboard from './Dashboard';
 import TradeMonitorService from './services/TradeMonitorService';
@@ -15,65 +15,83 @@ import SimpleStrategy from './strategies/SimpleStrategy';
 import DiffBasedStrategy from './strategies/DiffBasedStrategy';
 import PeakDetectorStrategy from './strategies/PeakDetectorStrategy';
 
-const ltcBitstamp = createCoinExchange({
-  coin: 'LTC',
-  exchange: BitstampExchange.NAME,
-  baseCoin: 'EUR',
-  amount: 1,
-  tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
-  strategy: { 
-    name: SimpleStrategy.NAME,
-    params: {
-      lowThreshold: -15, highThreshold: 20, frequency: 60
-    }
-  }
-});
 
-const ltcBitstampDiff = createCoinExchange({
-  coin: 'LTC',
-  exchange: BitstampExchange.NAME,
-  baseCoin: 'EUR',
-  amount: 1,
-  tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
-  strategy: { 
-    name: DiffBasedStrategy.NAME, 
-    params: {
-      baseCoinDiff: 2
-    }
-  }
-});
+// const ltcBitstamp = createCoinExchange({
+//   coin: 'LTC',
+//   exchange: BitstampExchange.NAME,
+//   baseCoin: 'EUR',
+//   amount: 1,
+//   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
+//   strategy: { 
+//     name: SimpleStrategy.NAME,
+//     params: {
+//       lowThreshold: -15, highThreshold: 20, frequency: 60
+//     }
+//   }
+// });
 
-const btcBitstampDiff = createCoinExchange({
-  coin: 'BTC',
-  exchange: BitstampExchange.NAME,
-  baseCoin: 'EUR',
-  amount: 0.06551237,//TODO avaiable
-  priceOrder: 7693,
-  tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
-  strategy: { 
-    name: DiffBasedStrategy.NAME, 
-    params: {
-      baseCoinDiff: 100
-    }
-  }
-});
+// const ltcBitstampDiff = createCoinExchange({
+//   coin: 'LTC',
+//   exchange: BitstampExchange.NAME,
+//   baseCoin: 'EUR',
+//   amount: 1,
+//   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
+//   strategy: { 
+//     name: DiffBasedStrategy.NAME, 
+//     params: {
+//       baseCoinDiff: 2
+//     }
+//   }
+// });
 
-const btcBitstampPeak = createCoinExchange({
-  coin: 'BTC',
-  exchange: BitstampExchange.NAME,
-  baseCoin: 'EUR',
-  amount: 0.06551237,//TODO avaiable
-  priceOrder: 7693,
-  tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
-  lastOrderType: OrderService.ORDER_SELL,
-  strategy: {
-    name: PeakDetectorStrategy.NAME, 
-    params: {//NOTE these are references will reflect in DB
-      threshold: 5, prices: [], maxLimit: 30   
-    }
-  }
-});
-const tradeCoins = [ltcBitstamp, ltcBitstampDiff, btcBitstampDiff, btcBitstampPeak];
+// const btcBitstampDiff = createCoinExchange({
+//   coin: 'BTC',
+//   exchange: BitstampExchange.NAME,
+//   baseCoin: 'EUR',
+//   amount: 0.06551237,//TODO avaiable
+//   priceOrder: 7693,
+//   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
+//   strategy: { 
+//     name: DiffBasedStrategy.NAME, 
+//     params: {
+//       baseCoinDiff: 100
+//     }
+//   }
+// });
+
+// const btcBitstampPeak = createCoinExchange({
+//   coin: 'BTC',
+//   exchange: BitstampExchange.NAME,
+//   baseCoin: 'EUR',
+//   amount: 0.06551237,//TODO avaiable
+//   priceOrder: 7693,
+//   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
+//   lastOrderType: OrderService.ORDER_SELL,
+//   strategy: {
+//     name: PeakDetectorStrategy.NAME, 
+//     params: {//NOTE these are references will reflect in DB
+//       threshold: 5, prices: [], maxLimit: 30   
+//     }
+//   }
+// });
+
+// const btcBitstampPeak2 = createCoinExchange({
+//   coin: 'BTC',
+//   exchange: BitstampExchange.NAME,
+//   baseCoin: 'EUR',
+//   amount: 0.06431237,//TODO avaiable
+//   priceOrder: 7693,
+//   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
+//   lastOrderType: OrderService.ORDER_BUY,
+//   strategy: {
+//     name: PeakDetectorStrategy.NAME, 
+//     params: {//NOTE these are references will reflect in DB
+//       threshold: 40, prices: [], maxLimit: 30   
+//     }
+//   }
+// });
+
+const tradeCoins = [];
 const dashboard = new Dashboard({});
 global.appLog = (...msg) => {
   dashboard.log(msg);

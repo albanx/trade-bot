@@ -1,6 +1,6 @@
 import OrderService from "../../src/services/OrderService";
 import Collection from '../__mocks__/Collection';
-import OrderRepository from "../../src/collections/OrderRepository";
+import OrderRepository from "../../src/store/mongodb/OrderRepository";
 
 describe('CoinExchangeService', () => {
   const coll = new Collection();

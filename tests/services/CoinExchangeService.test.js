@@ -1,6 +1,6 @@
 import CoinExchangeService from "../../src/services/CoinExchangeService";
 import Collection from '../__mocks__/Collection';
-import CoinExchangeRepository from "../../src/collections/CoinExchangeRepository";
+import CoinExchangeRepository from "../../src/store/mongodb/CoinExchangeRepository";
 import coinExchangeModel from '../__mocks__/coinExchangeModel';
 
 describe('CoinExchangeService', () => {
