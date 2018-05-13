@@ -62,6 +62,6 @@ export default class OrderService {
       dateCreated
     });
 
-    await this.store.saveModel(order);
+    await this.store.save(order);
   }
 }

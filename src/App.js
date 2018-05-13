@@ -1,8 +1,7 @@
 import config from '../config';
-import Store from './Store';
 import CoinExchangeService from './services/CoinExchangeService';
-import CoinExchangeRepository from './store/mongodb/CoinExchangeRepository';
-import OrderRepository from './store/mongodb/OrderRepository';
+import CoinExchangeRepository from './repository/CoinExchangeRepository';
+import OrderRepository from './repository/OrderRepository';
 import OrderService from './services/OrderService';
 import Dashboard from './Dashboard';
 import TradeMonitorService from './services/TradeMonitorService';
@@ -14,7 +13,8 @@ import DashboardViewer from './DashboardViewer';
 import SimpleStrategy from './strategies/SimpleStrategy';
 import DiffBasedStrategy from './strategies/DiffBasedStrategy';
 import PeakDetectorStrategy from './strategies/PeakDetectorStrategy';
-
+import createStore from './factories/StoreFactory';
+import MongoStore from './store/mongodb/MongoStore';
 
 // const ltcBitstamp = createCoinExchange({
 //   coin: 'LTC',
@@ -101,11 +101,19 @@ global.appWarning = (msg, e) => {
   dashboard.warning(msg, e.stack);
 };
 
+const store = createStore(MongoStore.NAME, {
+  host: config.HOST_MONGO, 
+  dbName: config.DB_NAME
+});
+
+// const store = createStore(MongoStore.NAME, {
+//   host: config.HOST_MONGO, 
+//   dbName: config.DB_NAME
+// });
+
 const startTradingBot = async () => {
-  const store = new Store(config.HOST_MONGO, config.DB_NAME);
-  const database = await store.getDatabase();
-  const coinExchangeCollection = await database.createCollection('coin_exchange');
-  const orderCollection = await database.createCollection('orders');
+  const coinExchangeCollection = await store.createCollection('coin_exchange');
+  const orderCollection = await store.createCollection('orders');
 
   const coinExchangeRepo = new CoinExchangeRepository(coinExchangeCollection);
   const orderRepo = new OrderRepository(orderCollection);

@@ -1,18 +1,10 @@
-//this is just a symbol interface as in JS interface are not possible
 export default class StoreInterface {
-  async findAll() {
+  /**
+   * 
+   * @param {String} name
+   * @returns CollectionInterface 
+   */
+  async createCollection(name) {
 
-  }
-
-  async update() {
-
-  }
-
-  async save() {
-
-  }
-
-  async find() {
-    
   }
 }

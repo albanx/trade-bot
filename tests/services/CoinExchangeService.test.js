@@ -16,7 +16,6 @@ describe('CoinExchangeService', () => {
   });
 
   test('getCoinsToTrade', async () => {
-    expect.assertions(1);
     const coins = await instance.getCoinsToTrade();
     expect(coins).toEqual([]);
   });

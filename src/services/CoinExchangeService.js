@@ -11,6 +11,6 @@ export default class CoinExchangeService {
   }
 
   async saveCoinExchange(coinExchangeModel) {
-    return await this.store.saveModel(coinExchangeModel);
+    return await this.store.save(coinExchangeModel);
   }
 }
