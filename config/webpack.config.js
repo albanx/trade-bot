@@ -6,6 +6,7 @@ export default {
     filename: 'bundle.js',
     path: path.resolve(__dirname, '../dist')
   },
+  devtool: 'eval-source-map',
   devServer: {
     contentBase: path.join(__dirname, "dist"),
     compress: true,

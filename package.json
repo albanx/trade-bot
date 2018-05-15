@@ -6,7 +6,7 @@
   "scripts": {
     "mongo": "mongod -dbpath=data/db",
     "start": "babel-node index",
-    "dev": "webpack-dev-server --hot  --open 'Google Chrome'",
+    "dev": "webpack-dev-server",
     "build": "babel-node scripts/build",
     "clean": "rimraf build",
     "prettify": "prettier --write '**/*.{js,json,css}'",

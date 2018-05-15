@@ -89,7 +89,6 @@ const btcBitstampPeak = createCoinExchange({
 // });
 
 const tradeCoins = [btcBitstampPeak];
-const dashboard = new Dashboard({});
 global.appLog = (...msg) => {
   console.log(msg);
 };
