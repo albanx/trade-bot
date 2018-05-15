@@ -3,19 +3,19 @@ import CoinExchangeService from './services/CoinExchangeService';
 import CoinExchangeRepository from './repository/CoinExchangeRepository';
 import OrderRepository from './repository/OrderRepository';
 import OrderService from './services/OrderService';
-import Dashboard from './Dashboard';
 import TradeMonitorService from './services/TradeMonitorService';
 import createCoinExchange from './factories/CoinExchangeFactory';
 import BitstampExchange from './exchanges/BitstampExchange';
 import EventMediator from './EventMediator';
 import EVENTS from './Events';
-import DashboardViewer from './DashboardViewer';
 import SimpleStrategy from './strategies/SimpleStrategy';
 import DiffBasedStrategy from './strategies/DiffBasedStrategy';
 import PeakDetectorStrategy from './strategies/PeakDetectorStrategy';
 import createStore from './factories/StoreFactory';
-import MongoStore from './store/mongodb/MongoStore';
 
+import MongoStore from './store/mongodb/MongoStore';
+import Dashboard from './Dashboard';
+import DashboardViewer from './DashboardViewer';
 // const ltcBitstamp = createCoinExchange({
 //   coin: 'LTC',
 //   exchange: BitstampExchange.NAME,

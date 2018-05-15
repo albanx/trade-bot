@@ -19,28 +19,15 @@ export default class BittrexExchange extends ExchangeInterface {
     return `${baseCoin}-${coin}`.toLowerCase();
   }
 
-  async getMarket(coinPair) {
-    return await this.request.get({
-      url: `${API_URL}/public/getticker`,
-      qs: {
-        market: coinPair
-      },
-      json: true
-    });
-  }
-
   async getCoinPrice(coin, baseCoin) {
     const market = this.getBasePair(coin, baseCoin);
-    const url = `${API_URL}/public/getticker`;
-    const qs = {  market };
-    const json = true;
-    const timeout = 10000;
-    const response = await this.request.get({ url, qs, json, timeout }).catch(
+    const res = await this.fetch(`${API_URL}/public/getticker?market=${market}`).catch(
       e => { 
         throw new AppRequestException('BittrexExchange::getCoinPrice', e) 
       }
     );
-    return parseFloat(response.result.Last);
+    const json = await res.json();
+    return parseFloat(json.result.Last);
   }
 
   async makeOrder(coinExchangeModel, orderType) {
@@ -52,11 +39,12 @@ export default class BittrexExchange extends ExchangeInterface {
       const quantity = coinExchangeModel.amount;
       const rate = coinExchangeModel.priceExchange;
       const market = this.getBasePair(coin, baseCoin);
-      const url = `${API_URL}/market/${endPoint}?apikey=${env.API_KEY_BITTREX}`;
+      const url = `${API_URL}/market/${endPoint}?apikey=${env.API_KEY_BITTREX}&market=${market}&quantity=${quantity}&rate=${rate}`;
       const json = true;
       const qs = { market, quantity, rate };
       const timeout = 10000;
-      const response = await this.request.get({ url, qs, json, timeout }).catch(
+
+      const response = await this.fetch(url, { url, qs, json, timeout }).catch(
         e => { throw new AppRequestException('BittrexExchange::makeOrder', e) }
       );
       return this.getResponse(response);
