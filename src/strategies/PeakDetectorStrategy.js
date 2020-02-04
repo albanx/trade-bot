@@ -3,7 +3,7 @@ import AbstractStrategy from './AbstractStrategy';
 
 const MAX_PRICE_TO_STORE = 1000;
 export default class PeakDetectorStratety extends AbstractStrategy {
-  constructor({threshold, prices, maxLimit}) {
+  constructor({ threshold, prices, maxLimit }) {
     super();
     Object.assign(this, { threshold, prices, maxLimit });
   }
@@ -26,12 +26,16 @@ export default class PeakDetectorStratety extends AbstractStrategy {
   }
 
   isOrderPossible(coinExchangeModel, nextOrderType) {
-    const price = coinExchangeModel.priceExchange * coinExchangeModel.amount;
+    const priceTotal =
+      coinExchangeModel.priceExchange * coinExchangeModel.amount;
     const diff = coinExchangeModel.priceChange.diff * coinExchangeModel.amount;
-    this.addPrice(price);
-    coinExchangeModel.strategy.params.prices = this.prices;//FIXME dirty trick 
+    this.addPrice(priceTotal);
+    coinExchangeModel.strategy.params.prices = this.prices; //FIXME dirty trick
 
-    if (nextOrderType === OrderService.ORDER_SELL && this.isSellPossible(diff)) {
+    if (
+      nextOrderType === OrderService.ORDER_SELL &&
+      this.isSellPossible(diff)
+    ) {
       return true;
     }
 
@@ -42,10 +46,10 @@ export default class PeakDetectorStratety extends AbstractStrategy {
     return false;
   }
 
-  addPrice(price) {
-    const diff = price - this.getLastPrice(price);
+  addPrice(priceTotal) {
+    const diff = priceTotal - this.getLastPrice(priceTotal);
     const date = new Date();
-    this.prices.push({price, date, diff});
+    this.prices.push({ price: priceTotal, date, diff });
     this.prices = this.prices.slice(-MAX_PRICE_TO_STORE);
   }
 
@@ -57,7 +61,7 @@ export default class PeakDetectorStratety extends AbstractStrategy {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -79,16 +83,18 @@ export default class PeakDetectorStratety extends AbstractStrategy {
       .map(item => item.diff)
       .reduce((acc, diff) => acc + diff);
 
-      if(variationLast >= 0) {
-        appLog('isIncrementing::', variationLast);
-      } else {
-        appLog('isDecrementing::', variationLast);
-      }
-      
+    if (variationLast >= -3) {
+      appLog('isIncrementing::', variationLast);
+    } else {
+      appLog('isDecrementing::', variationLast);
+    }
+
     return variationLast >= 0;
   }
 
   getLastPrice(defValue) {
-    return this.prices.length ? this.prices[this.prices.length-1].price : defValue;
+    return this.prices.length
+      ? this.prices[this.prices.length - 1].price
+      : defValue;
   }
 }

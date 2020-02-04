@@ -15,6 +15,7 @@ import DiffBasedStrategy from './strategies/DiffBasedStrategy';
 import PeakDetectorStrategy from './strategies/PeakDetectorStrategy';
 import createStore from './factories/StoreFactory';
 import MongoStore from './store/mongodb/MongoStore';
+import { ExchangeService } from './services/ExchangeService';
 
 // const ltcBitstamp = createCoinExchange({
 //   coin: 'LTC',
@@ -22,7 +23,7 @@ import MongoStore from './store/mongodb/MongoStore';
 //   baseCoin: 'EUR',
 //   amount: 1,
 //   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
-//   strategy: { 
+//   strategy: {
 //     name: SimpleStrategy.NAME,
 //     params: {
 //       lowThreshold: -15, highThreshold: 20, frequency: 60
@@ -36,8 +37,8 @@ import MongoStore from './store/mongodb/MongoStore';
 //   baseCoin: 'EUR',
 //   amount: 1,
 //   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
-//   strategy: { 
-//     name: DiffBasedStrategy.NAME, 
+//   strategy: {
+//     name: DiffBasedStrategy.NAME,
 //     params: {
 //       baseCoinDiff: 2
 //     }
@@ -51,8 +52,8 @@ import MongoStore from './store/mongodb/MongoStore';
 //   amount: 0.06551237,//TODO avaiable
 //   priceOrder: 7693,
 //   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
-//   strategy: { 
-//     name: DiffBasedStrategy.NAME, 
+//   strategy: {
+//     name: DiffBasedStrategy.NAME,
 //     params: {
 //       baseCoinDiff: 100
 //     }
@@ -68,9 +69,9 @@ import MongoStore from './store/mongodb/MongoStore';
 //   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
 //   lastOrderType: OrderService.ORDER_SELL,
 //   strategy: {
-//     name: PeakDetectorStrategy.NAME, 
+//     name: PeakDetectorStrategy.NAME,
 //     params: {//NOTE these are references will reflect in DB
-//       threshold: 5, prices: [], maxLimit: 30   
+//       threshold: 5, prices: [], maxLimit: 30
 //     }
 //   }
 // });
@@ -84,9 +85,45 @@ import MongoStore from './store/mongodb/MongoStore';
 //   tradeMode: TradeMonitorService.TRADE_MODE_SIMULATION,
 //   lastOrderType: OrderService.ORDER_BUY,
 //   strategy: {
-//     name: PeakDetectorStrategy.NAME, 
+//     name: PeakDetectorStrategy.NAME,
 //     params: {//NOTE these are references will reflect in DB
-//       threshold: 40, prices: [], maxLimit: 30   
+//       threshold: 40, prices: [], maxLimit: 30
+//     }
+//   }
+// });
+
+// const ripple = createCoinExchange({
+//   coin: 'XRP',
+//   exchange: BitstampExchange.NAME,
+//   baseCoin: 'EUR',
+//   amount: 148.87386417,
+//   priceOrder: 0.23221,
+//   tradeMode: TradeMonitorService.TRADE_MODE_LIVE,
+//   lastOrderType: OrderService.ORDER_BUY,
+//   strategy: {
+//     name: PeakDetectorStrategy.NAME,
+//     params: {
+//       threshold: 15,
+//       prices: [],
+//       maxLimit: 30
+//     }
+//   }
+// });
+
+// const eth = createCoinExchange({
+//   coin: 'ETH',
+//   exchange: BitstampExchange.NAME,
+//   baseCoin: 'EUR',
+//   amount: 1.71617824,
+//   priceOrder: 174,
+//   tradeMode: TradeMonitorService.TRADE_MODE_LIVE,
+//   lastOrderType: OrderService.ORDER_BUY,
+//   strategy: {
+//     name: PeakDetectorStrategy.NAME,
+//     params: {
+//       threshold: 15,
+//       prices: [],
+//       maxLimit: 30
 //     }
 //   }
 // });
@@ -102,24 +139,36 @@ global.appWarning = (msg, e) => {
 };
 
 const store = createStore(MongoStore.NAME, {
-  host: config.HOST_MONGO, 
+  host: config.HOST_MONGO,
   dbName: config.DB_NAME
 });
 
-// const store = createStore(MongoStore.NAME, {
-//   host: config.HOST_MONGO, 
-//   dbName: config.DB_NAME
-// });
-
-const startTradingBot = async () => {
+const startDatabase = async () => {
+  dashboard.log('Connecting to database...');
   const coinExchangeCollection = await store.createCollection('coin_exchange');
   const orderCollection = await store.createCollection('orders');
 
   const coinExchangeRepo = new CoinExchangeRepository(coinExchangeCollection);
   const orderRepo = new OrderRepository(orderCollection);
 
-  const mediator = new EventMediator();
+  return { orderRepo, coinExchangeRepo };
+};
 
+const loadBalances = async () => {
+  const exchangeService = new ExchangeService();
+  const balances = await exchangeService.getBalances(BitstampExchange.NAME);
+  const balancesAsArray = balances.map(b => [
+    b.exchange,
+    b.coin,
+    b.balance,
+    `${b.value} ${b.valueCurr}`
+  ]);
+  dashboard.addBalancesRows(balancesAsArray);
+};
+
+const startTradingBot = async () => {
+  const { orderRepo, coinExchangeRepo } = await startDatabase();
+  const mediator = new EventMediator();
   const coinExchangeService = new CoinExchangeService(coinExchangeRepo);
   const orderService = new OrderService(orderRepo);
   const tradeService = new TradeMonitorService(
@@ -128,6 +177,8 @@ const startTradingBot = async () => {
     mediator,
     tradeCoins
   );
+
+  await loadBalances();
 
   //display events
   const dashboardViewer = new DashboardViewer(dashboard, orderService);
@@ -140,9 +191,12 @@ const startTradingBot = async () => {
   });
   mediator.on('MONITOR_MAKE_ORDER', (coinExchangeModel, orderType) =>
     dashboard.log(
-      'Making order', 
-      orderType, 
-      coinExchangeModel.getId().toString().substring(0, 4)
+      'Making order',
+      orderType,
+      coinExchangeModel
+        .getId()
+        .toString()
+        .substring(0, 4)
     )
   );
   mediator.on('MONITOR_ORDER_DONE', () => dashboard.log('Order done'));
@@ -156,9 +210,9 @@ const startTradingBot = async () => {
       dashboard.log('Retry in 10 seconds...');
       setTimeout(() => startWrapper(), 10000);
     });
-  }
+  };
 
   startWrapper();
 };
 
-startTradingBot().catch(e => dashboard.error(e.message, e.error));
+startTradingBot().catch(e => dashboard.error(e.message, e.error, e.stack));
