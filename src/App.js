@@ -143,7 +143,7 @@ const store = createStore(MongoStore.NAME, {
   dbName: config.DB_NAME
 });
 
-const startDatabase = async () => {
+export const startDatabase = async () => {
   dashboard.log('Connecting to database...');
   const coinExchangeCollection = await store.createCollection('coin_exchange');
   const orderCollection = await store.createCollection('orders');
@@ -154,20 +154,53 @@ const startDatabase = async () => {
   return { orderRepo, coinExchangeRepo };
 };
 
-const loadBalances = async () => {
+export const loadBalances = async () => {
   const exchangeService = new ExchangeService();
   const balances = await exchangeService.getBalances(BitstampExchange.NAME);
+
+  return balances;
+};
+
+const viewBalances = balances => {
   const balancesAsArray = balances.map(b => [
     b.exchange,
     b.coin,
     b.balance,
     `${b.value} ${b.valueCurr}`
   ]);
+
   dashboard.addBalancesRows(balancesAsArray);
+};
+
+const createCoinsToTradeFromBalance = balances => {
+  return balances
+    .filter(coin => coin.coin === 'ltc')
+    .map(coin =>
+      createCoinExchange({
+        coin: coin.coin,
+        exchange: coin.exchange,
+        baseCoin: 'EUR',
+        amount: coin.balance,
+        priceOrder: coin.balance / coin.value,
+        tradeMode: TradeMonitorService.TRADE_MODE_MONITOR,
+        lastOrderType: OrderService.ORDER_BUY,
+        strategy: {
+          name: PeakDetectorStrategy.NAME,
+          params: {
+            threshold: 15,
+            prices: [],
+            maxLimit: 30
+          }
+        }
+      })
+    );
 };
 
 const startTradingBot = async () => {
   const { orderRepo, coinExchangeRepo } = await startDatabase();
+  const balances = await loadBalances();
+  // const tradeCoins = createCoinsToTradeFromBalance(balances);
+
   const mediator = new EventMediator();
   const coinExchangeService = new CoinExchangeService(coinExchangeRepo);
   const orderService = new OrderService(orderRepo);
@@ -178,9 +211,8 @@ const startTradingBot = async () => {
     tradeCoins
   );
 
-  await loadBalances();
-
   //display events
+  viewBalances(balances);
   const dashboardViewer = new DashboardViewer(dashboard, orderService);
   mediator.on(EVENTS.MONITOR_START, () => dashboard.log('Monitor start'));
   mediator.on(EVENTS.MONITOR_LOAD_COINS, () => dashboard.log('Loading coins'));

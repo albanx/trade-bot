@@ -43,14 +43,17 @@ export default class TradeMonitorService {
 
   async loadCoins() {
     const storedCoins = await this.coinExchangeService.getCoinsToTrade();
-    // const newCoins = this.coinsToTradeDefault.filter(item => !storedCoins.find(item2 =>
-    //       ( item.coin === item2.coin &&
-    //       item.exchange === item2.exchange &&
-    //       item.baseCoin === item2.baseCoin &&
-    //       item.tradeMode === item2.tradeMode &&
-    //       item.strategy.name === item2.strategy.name )
-    //     )
-    // );
+    const newCoins = this.coinsToTradeDefault.filter(
+      item =>
+        !storedCoins.find(
+          item2 =>
+            item.coin === item2.coin &&
+            item.exchange === item2.exchange &&
+            item.baseCoin === item2.baseCoin &&
+            item.tradeMode === item2.tradeMode &&
+            item.strategy.name === item2.strategy.name
+        )
+    );
 
     this.coinsToTrade = storedCoins.concat(this.coinsToTradeDefault);
     this.coinsToTrade.forEach(coin => this.initCoin(coin, 0));

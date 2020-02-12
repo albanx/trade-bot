@@ -111,9 +111,10 @@ export default class BitstampExchange extends ExchangeInterface {
       balances
         .filter(item => item.balance > 0)
         .map(async item => {
-          item.value =
-            (await this.getCoinPrice(item.coin, item.valueCurr, 0)) *
-            item.balance;
+          const price = await this.getCoinPrice(item.coin, item.valueCurr, 0);
+          const value = price * item.balance;
+          item.value = value.toFixed(2);
+
           return item;
         })
     );
